@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ZBR Warehouse</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Ekran logowania -->
+  <div class="login-container">
+    <h2>Logowanie</h2>
+    <form class="login-form" id="loginForm">
+      <label for="username">Login:</label>
+      <input type="text" id="username" name="username" required>
+
+      <label for="password">Hasło:</label>
+      <input type="password" id="password" name="password" required>
+
+      <button type="submit">Zaloguj się</button>
+    </form>
+  </div>
+
+  <!-- Reszta strony, początkowo ukryta -->
+  <header class="navbar main-content" style="display:none;">
+    <div class="logo">
+      <img src="images/ZBR_logo.png" alt="Logo ZBR" class="logo-img"> 
+      <span>ZBR Warehouse</span>
+    </div>
+    <div class="user">
+      <span>Witaj, Kamil</span>
+      <button class="logout">Wyloguj się</button>
+    </div>
+  </header>
+
+  <div class="secondbar main-content" style="display:none;">
+    <p>Przyjęcie produktu | Wydanie towaru | Stany magazynowe | Terminy produktów | Raporty | Pomoc</p>
+  </div>
+
+  <main class="content main-content" style="display:none;">
+    <!-- Tutaj będzie wyświetlana treść strony -->
+  </main>
+
+  <!-- Skrypty -->
+  <script>
+  // Logowanie
+  const form = document.getElementById('loginForm');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+
+    const res = await fetch('/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      // Ukryj ekran logowania
+      document.querySelector('.login-container').style.display = 'none';
+      // Pokaż resztę strony
+      document.querySelectorAll('.main-content').forEach(el => el.style.display = 'block');
+    } else {
+      alert('Błędny login lub hasło');
+    }
+  });
+
+  // Wylogowanie
+  const logoutBtn = document.querySelector('.logout');
+
+  logoutBtn.addEventListener('click', () => {
+    // Ukryj resztę strony
+    document.querySelectorAll('.main-content').forEach(el => el.style.display = 'none');
+    // Pokaż ekran logowania
+    document.querySelector('.login-container').style.display = 'flex';
+  });
+  </script>
+</body>
+</html>
