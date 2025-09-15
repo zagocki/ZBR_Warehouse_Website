@@ -53,6 +53,5 @@ document.getElementById('search').addEventListener('input', (e)=>{
 refresh(e.target.value);
 });
 
-
 // initial load
 refresh();

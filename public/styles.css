@@ -5,6 +5,7 @@ body {
   color: white;
 }
 
+/* pierwszy header */
 .navbar {
   position: relative;         /* potrzebne, aby dziecko z position:absolute było względem navbar */
   display: flex;
@@ -70,11 +71,64 @@ body {
   height: calc(100vh - 60px);
 }
 
+/* secound bar */
 .secondbar {
-  background: #242426; /* ten sam kolor */
+  background: #242426; 
   color: white;
   padding: 10px 20px;
 }
+
+.submenu {
+  display: flex;
+  gap: 20px;               /* odstępy między przyciskami */
+}
+
+.submenu button {
+  background: none;      /* bez tła */
+  border: none;          /* bez obramowania */
+  color: white;          /* biały napis */
+  cursor: pointer;       /* kursor jak dla linku */
+  font-size: 16px;       /* wielkość czcionki */
+  padding: 8px 12px;     /* odstępy dla wygodniejszego klikania */
+}
+
+.submenu button:hover {
+  text-decoration: underline;  /* efekt hover np. podkreślenie */
+}
+
+/* tabela po wciśnięciu przycisku "stany magazynowe" */
+.inventory {
+  margin: 20px;
+  background: #242426;
+  padding: 15px;
+  border-radius: 8px;
+}
+
+.inventory table {
+  width: 100%;
+  border-collapse: collapse;
+  color: white;
+}
+
+.inventory th, .inventory td {
+  padding: 10px;
+  text-align: left;
+}
+
+.inventory th {
+  border-bottom: 2px solid #444;
+  font-weight: bold;
+}
+
+.inventory tr:hover td {
+  background: #333;
+}
+
+.hidden {
+  display: none;
+}
+
+
 
 /* Ekran logowania */
 .login-container {
