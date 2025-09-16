@@ -13,10 +13,8 @@
     <form class="login-form" id="loginForm">
       <label for="username">Login:</label>
       <input type="text" id="username" name="username" required>
-
       <label for="password">Hasło:</label>
       <input type="password" id="password" name="password" required>
-
       <button type="submit">Zaloguj się</button>
     </form>
   </div>
@@ -42,90 +40,129 @@
   </div>
 
   <main class="content main-content" style="display:none;">
-  <!-- Pusta przestrzeń pod secondbar, tabela będzie wstawiana dynamicznie -->
-  <div id="inventory" class="hidden"></div>
-</main>
+    <div id="inventory" class="hidden"></div>
+  </main>
 
-<script>
-  // Obsługa przycisku Stany magazynowe
-document.addEventListener('DOMContentLoaded', () => {
-  const btnStany = document.getElementById("btnStany");
-  const container = document.getElementById("inventory");
+  <!-- Modal dodawania produktu -->
+  <div id="addProductModal" class="modal hidden">
+    <div class="modal-content">
+      <h2>Dodaj nowy produkt</h2>
+      <form id="addProductForm">
+        <label>Produkt
+          <input type="text" name="produkt" required>
+        </label>
+        <label>SKU
+          <input type="text" name="sku" required>
+        </label>
+        <label>Ilość
+          <input type="number" name="ilosc" required>
+        </label>
+        <label>Data
+          <input type="date" name="data" required>
+        </label>
+        <label>Dział
+          <input type="text" name="dzial" required>
+        </label>
+        <div class="modal-buttons">
+          <button type="submit">Dodaj</button>
+          <button type="button" id="closeModal">Anuluj</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
-  btnStany.addEventListener("click", () => {
-    // jeśli jeszcze puste → wstaw tabelę
-    if (!container.innerHTML) {
-      // dodaj klasę inventory, jeśli jeszcze jej nie ma
-      container.classList.add("inventory");
-
-      container.innerHTML = `
-        <table>
-          <thead>
-            <tr>
-              <th>Produkt</th>
-              <th>SKU</th>
-              <th>Ilość</th>
-              <th>Data</th>
-              <th>Dział</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Przykładowy produkt</td>
-              <td>SKU123</td>
-              <td>50</td>
-              <td>2025-09-15</td>
-              <td>Magazyn A</td>
-            </tr>
-          </tbody>
-        </table>
-      `;
-    }
-
-    // pokaż/ukryj tabelę
-    container.classList.toggle("hidden");
-  });
-});
-
-</script>
-
-
-  <!-- Skrypty -->
   <script>
-  // Logowanie
-  const form = document.getElementById('loginForm');
+  document.addEventListener('DOMContentLoaded', () => {
+    const btnStany = document.getElementById("btnStany");
+    const container = document.getElementById("inventory");
 
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
+    // Tworzenie tabeli i przycisku dodawania produktów
+    btnStany.addEventListener("click", () => {
+      if (!container.innerHTML) {
+        container.innerHTML = `
+          <div class="add-product">
+            <button class="add-btn">
+              <span class="plus">+</span>
+            </button>
+            <span class="add-text">Dodaj nowy produkt</span>
+          </div>
+          <div class="inventory table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Produkt</th>
+                  <th>SKU</th>
+                  <th>Ilość</th>
+                  <th>Data</th>
+                  <th>Dział</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Przykładowy produkt</td>
+                  <td>SKU123</td>
+                  <td>50</td>
+                  <td>2025-09-15</td>
+                  <td>Magazyn A</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        `;
+      }
+      container.classList.toggle("hidden");
 
-    const res = await fetch('/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password })
+      // Obsługa kliknięcia "Dodaj nowy produkt"
+      const addBtn = container.querySelector('.add-btn');
+      const modal = document.getElementById('addProductModal');
+      addBtn.addEventListener('click', () => modal.classList.remove('hidden'));
     });
 
-    const data = await res.json();
+    // Obsługa modala
+    const closeModalBtn = document.getElementById('closeModal');
+    const addForm = document.getElementById('addProductForm');
+    const tbody = document.querySelector('#inventory table tbody');
 
-    if (data.success) {
-      document.querySelector('.login-container').style.display = 'none';
-      document.querySelectorAll('.main-content').forEach(el => el.style.display = 'block');
-    } else {
-      alert('Błędny login lub hasło');
-    }
+    closeModalBtn.addEventListener('click', () => {
+      document.getElementById('addProductModal').classList.add('hidden');
+      addForm.reset();
+    });
+
+    addForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const formData = new FormData(addForm);
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${formData.get('produkt')}</td><td>${formData.get('sku')}</td><td>${formData.get('ilosc')}</td><td>${formData.get('data')}</td><td>${formData.get('dzial')}</td>`;
+      tbody.appendChild(tr);
+      document.getElementById('addProductModal').classList.add('hidden');
+      addForm.reset();
+    });
+
+    // Logowanie i wylogowanie
+    const form = document.getElementById('loginForm');
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      const res = await fetch('/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      const data = await res.json();
+      if (data.success) {
+        document.querySelector('.login-container').style.display = 'none';
+        document.querySelectorAll('.main-content').forEach(el => el.style.display = 'block');
+      } else alert('Błędny login lub hasło');
+    });
+
+    const logoutBtn = document.querySelector('.logout');
+    logoutBtn.addEventListener('click', () => {
+      document.querySelectorAll('.main-content').forEach(el => el.style.display = 'none');
+      document.querySelector('.login-container').style.display = 'flex';
+      document.getElementById('inventory').classList.add('hidden');
+    });
   });
-
-  // Wylogowanie
-  const logoutBtn = document.querySelector('.logout');
-
-  logoutBtn.addEventListener('click', () => {
-    document.querySelectorAll('.main-content').forEach(el => el.style.display = 'none');
-    document.querySelector('.login-container').style.display = 'flex';
-    // ukryj tabelę przy wylogowaniu
-    document.getElementById('inventory').classList.add('hidden');
-  });
-
   </script>
 </body>
 </html>

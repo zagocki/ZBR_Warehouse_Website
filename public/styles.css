@@ -21,6 +21,7 @@ body {
   gap: 10px;
   font-size: 1.2em;
   font-weight: bold;
+  margin-top: 7px; /* przesunięcie w dół o 5px */
 }
 
 .logo-img {
@@ -96,6 +97,42 @@ body {
   text-decoration: underline;  /* efekt hover np. podkreślenie */
 }
 
+/* ikona plus, dodawanie produktów */
+.add-product {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px; /* odstęp od tabeli */
+  margin-left: 30px; /* przesunięcie w prawo */
+}
+
+.add-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #0F7294;
+  border: 2px solid #E8D5C4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin-right: 10px;
+}
+
+.add-btn:hover {
+  transform: scale(1.1);
+}
+
+.add-btn .plus {
+  color: #E8D5C4;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.add-text {
+  font-size: 16px;
+  color: white;
+}
+
 /* tabela po wciśnięciu przycisku "stany magazynowe" */
 .inventory {
   margin: 20px;
@@ -128,7 +165,85 @@ body {
   display: none;
 }
 
+/* ekran dodawania nowego produktu */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(44,44,44,0.95); /* zasłania tło */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
 
+.modal.hidden {
+  display: none;
+}
+
+.modal-content {
+  background: #2C2C2C;
+  padding: 20px;
+  border-radius: 10px;
+  width: 400px;
+  max-width: 90%;
+  display: flex;
+  flex-direction: column;
+  gap: 15px; /* odstęp między labelami */
+}
+
+.modal-content h2 {
+  color: white;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.modal-content label {
+  display: flex;
+  flex-direction: column;
+  font-size: 14px;
+  color: white;
+}
+
+.modal-content input {
+  padding: 8px 10px;
+  border-radius: 9px;
+  border: 1px solid #444;
+  background: #242426;
+  color: white;
+  margin-top: 5px; /* odstęp od label */
+  font-size: 14px;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.modal-buttons button {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.modal-buttons button[type="submit"] {
+  background-color: #0F7294;
+  color: white;
+}
+
+.modal-buttons button#closeModal {
+  background-color: #555;
+  color: white;
+}
+
+.modal-buttons button:hover {
+  opacity: 0.9;
+}
 
 /* Ekran logowania */
 .login-container {
