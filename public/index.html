@@ -13,10 +13,8 @@
     <form class="login-form" id="loginForm">
       <label for="username">Login:</label>
       <input type="text" id="username" name="username" required>
-
       <label for="password">Hasło:</label>
       <input type="password" id="password" name="password" required>
-
       <button type="submit">Zaloguj się</button>
     </form>
   </div>
@@ -24,7 +22,7 @@
   <!-- Reszta strony -->
   <header class="navbar main-content" style="display:none;">
     <div class="logo">
-      <img src="images/ZBR_logo.png" alt="Logo ZBR" class="logo-img"> 
+      <img src="images/ZBR_logo.png" alt="Logo ZBR" class="logo-img">
       <span>ZBR Warehouse</span>
     </div>
     <div class="user">
@@ -38,18 +36,17 @@
       <button id="btnStany" class="submenu-btn">Stany magazynowe</button>
       <button class="submenu-btn">Wydanie towaru</button>
       <button class="submenu-btn">Raporty</button>
+      <button id="btnRaporty" class="submenu-btn">Generowanie raportów</button>
     </nav>
   </div>
 
   <main class="content main-content" style="display:none;">
+    <!-- Sekcja inventory -->
     <div id="inventory" class="hidden">
       <div class="add-product">
-        <button id="openModal" class="add-btn">
-          <span class="plus">+</span>
-        </button>
+        <button id="openModal" class="add-btn"><span class="plus">+</span></button>
         <span class="add-text">Dodaj nowy produkt</span>
       </div>
-
       <div class="inventory table-wrapper">
         <table>
           <thead>
@@ -71,6 +68,18 @@
             </tr>
           </tbody>
         </table>
+      </div>
+    </div>
+
+    <!-- Sekcja raportów -->
+    <div id="reports" class="hidden">
+      <div class="reports-bar">
+        <button class="report-btn">Raport 1</button>
+        <button class="report-btn">Raport 2</button>
+        <button class="report-btn">Raport 3</button>
+      </div>
+      <div class="report-placeholder">
+        <p>Podgląd raportu pojawi się tutaj</p>
       </div>
     </div>
   </main>
@@ -103,84 +112,6 @@
     </div>
   </div>
 
-  <!-- Skrypty -->
-  <script>
-  // Obsługa logowania
-  const form = document.getElementById('loginForm');
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
-
-    const res = await fetch('/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password })
-    });
-
-    const data = await res.json();
-
-    if (data.success) {
-      document.querySelector('.login-container').style.display = 'none';
-      document.querySelectorAll('.main-content').forEach(el => el.style.display = 'block');
-    } else {
-      alert('Błędny login lub hasło');
-    }
-  });
-
-  // Wylogowanie
-  const logoutBtn = document.querySelector('.logout');
-  logoutBtn.addEventListener('click', () => {
-    document.querySelectorAll('.main-content').forEach(el => el.style.display = 'none');
-    document.querySelector('.login-container').style.display = 'flex';
-    document.getElementById('inventory').classList.add('hidden');
-  });
-
-  // Obsługa Stany magazynowe
-  const btnStany = document.getElementById("btnStany");
-  const container = document.getElementById("inventory");
-  btnStany.addEventListener("click", () => {
-    container.classList.toggle("hidden");
-  });
-
-  // Obsługa modala
-  const modal = document.getElementById("addProductModal");
-  const openModalBtn = document.getElementById("openModal");
-  const closeModalBtn = document.getElementById("closeModal");
-  const addProductForm = document.getElementById("addProductForm");
-  const tableBody = document.getElementById("productTableBody");
-
-  openModalBtn.addEventListener("click", () => {
-    modal.classList.remove("hidden");
-  });
-
-  closeModalBtn.addEventListener("click", () => {
-    modal.classList.add("hidden");
-  });
-
-  // Dodawanie produktu do tabeli
-  addProductForm.addEventListener("submit", (e) => {
-    e.preventDefault();
-
-    const produkt = addProductForm.produkt.value;
-    const sku = addProductForm.sku.value;
-    const ilosc = addProductForm.ilosc.value;
-    const data = addProductForm.data.value;
-    const dzial = addProductForm.dzial.value;
-
-    const newRow = document.createElement("tr");
-    newRow.innerHTML = `
-      <td>${produkt}</td>
-      <td>${sku}</td>
-      <td>${ilosc}</td>
-      <td>${data}</td>
-      <td>${dzial}</td>
-    `;
-
-    tableBody.appendChild(newRow);
-    addProductForm.reset();
-    modal.classList.add("hidden");
-  });
-  </script>
+  <script src="app.js"></script>
 </body>
 </html>

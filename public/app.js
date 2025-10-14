@@ -10,106 +10,92 @@ async function api(path, method='GET', body) {
     return res.json();
 }
 
-// Funkcja odświeżająca tabelę produktów i selecty
+// Funkcja odświeżająca tabelę produktów
 async function refresh(q='') {
     const rows = await api('/products' + (q ? ('?q=' + encodeURIComponent(q)) : ''));
-    const tbody = document.querySelector('#productsTable tbody');
+    const tbody = document.getElementById('productTableBody');
     if (tbody) tbody.innerHTML = '';
 
-    const receiveSel = document.getElementById('receiveProduct');
-    const issueSel = document.getElementById('issueProduct');
-    if (receiveSel && issueSel) {
-        receiveSel.innerHTML = issueSel.innerHTML = '';
-    }
-
     rows.forEach(r => {
-        if (tbody) {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `<td>${r.name}</td><td>${r.sku||''}</td><td>${r.qty}</td><td>${r.date||''}</td><td>${r.location||''}</td>`;
-            tbody.appendChild(tr);
-        }
-
-        if (receiveSel && issueSel) {
-            const opt = document.createElement('option');
-            opt.value = r.id;
-            opt.text = `${r.name} (id:${r.id})`;
-            receiveSel.appendChild(opt.cloneNode(true));
-            issueSel.appendChild(opt);
-        }
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${r.name}</td><td>${r.sku||''}</td><td>${r.qty}</td><td>${r.date||''}</td><td>${r.location||''}</td>`;
+        tbody.appendChild(tr);
     });
 }
 
-// Obsługa dynamicznej tabeli i modala
 document.addEventListener('DOMContentLoaded', () => {
+    // Logowanie
+    const form = document.getElementById('loginForm');
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+
+        const res = await fetch('/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        });
+
+        const data = await res.json();
+        if (data.success) {
+            document.querySelector('.login-container').style.display = 'none';
+            document.querySelectorAll('.main-content').forEach(el => el.style.display = 'block');
+            refresh();
+        } else {
+            alert('Błędny login lub hasło');
+        }
+    });
+
+    // Wylogowanie
+    document.querySelector('.logout').addEventListener('click', () => {
+        document.querySelectorAll('.main-content').forEach(el => el.style.display = 'none');
+        document.querySelector('.login-container').style.display = 'flex';
+        document.getElementById('inventory').classList.add('hidden');
+        document.getElementById('reports').classList.add('hidden');
+    });
+
+    // Toggle sekcji inventory / reports
     const btnStany = document.getElementById("btnStany");
-    const container = document.getElementById("inventory");
-    const modal = document.getElementById('addProductModal');
-    const closeModalBtn = document.getElementById('closeModal');
-    const addForm = document.getElementById('addProductForm');
+    const btnRaporty = document.getElementById("btnRaporty");
+    const inventory = document.getElementById("inventory");
+    const reports = document.getElementById("reports");
 
     btnStany.addEventListener('click', () => {
-        if (!container.innerHTML) {
-            container.innerHTML = `
-                <div class="add-product">
-                    <button class="add-btn"><span class="plus">+</span></button>
-                    <span class="add-text">Dodaj nowy produkt</span>
-                </div>
-                <div class="inventory table-wrapper">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Produkt</th>
-                                <th>SKU</th>
-                                <th>Ilość</th>
-                                <th>Data</th>
-                                <th>Dział</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-            `;
-        }
-
-        container.classList.toggle("hidden");
-
-        // Podpinamy event do przycisku dodawania produktu dopiero po wstawieniu przycisku do DOM
-        const addBtn = container.querySelector('.add-product .add-btn');
-        if (addBtn) {
-            addBtn.addEventListener('click', () => {
-                modal.classList.remove('hidden');
-            });
-        }
+        const isHidden = inventory.classList.contains('hidden');
+        inventory.classList.toggle('hidden', !isHidden);
+        reports.classList.add('hidden');
     });
 
-    // Zamknięcie modala
-    closeModalBtn.addEventListener('click', () => {
-        modal.classList.add('hidden');
-        addForm.reset();
+    btnRaporty.addEventListener('click', () => {
+        const isHidden = reports.classList.contains('hidden');
+        reports.classList.toggle('hidden', !isHidden);
+        inventory.classList.add('hidden');
     });
 
-    // Zatwierdzenie formularza dodania produktu
-    addForm.addEventListener('submit', (e) => {
+    // Modal
+    const modal = document.getElementById("addProductModal");
+    const openModalBtn = document.getElementById("openModal");
+    const closeModalBtn = document.getElementById("closeModal");
+    const addProductForm = document.getElementById("addProductForm");
+    const tableBody = document.getElementById("productTableBody");
+
+    openModalBtn.addEventListener("click", () => modal.classList.remove("hidden"));
+    closeModalBtn.addEventListener("click", () => modal.classList.add("hidden"));
+
+    addProductForm.addEventListener("submit", (e) => {
         e.preventDefault();
-        const formData = new FormData(addForm);
-        const produkt = formData.get('produkt');
-        const sku = formData.get('sku');
-        const ilosc = formData.get('ilosc');
-        const data = formData.get('data');
-        const dzial = formData.get('dzial');
+        const produkt = addProductForm.produkt.value;
+        const sku = addProductForm.sku.value;
+        const ilosc = addProductForm.ilosc.value;
+        const data = addProductForm.data.value;
+        const dzial = addProductForm.dzial.value;
 
-        // Dodanie wiersza do tabeli
-        const tbody = container.querySelector('table tbody');
-        if (tbody) {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `<td>${produkt}</td><td>${sku}</td><td>${ilosc}</td><td>${data}</td><td>${dzial}</td>`;
-            tbody.appendChild(tr);
-        }
+        const newRow = document.createElement("tr");
+        newRow.innerHTML = `<td>${produkt}</td><td>${sku}</td><td>${ilosc}</td><td>${data}</td><td>${dzial}</td>`;
+        tableBody.appendChild(newRow);
 
-        modal.classList.add('hidden');
-        addForm.reset();
+        addProductForm.reset();
+        modal.classList.add("hidden");
     });
 });
-
-// Początkowe załadowanie danych przy starcie strony
-refresh();

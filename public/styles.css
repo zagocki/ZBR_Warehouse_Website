@@ -1,18 +1,17 @@
 body {
   margin: 0;
   font-family: system-ui, Arial, sans-serif;
-  background: #2c2c2c !important;
+  background: #2c2c2c;
   color: white;
 }
-
 /* pierwszy header */
 .navbar {
-  position: relative;         /* potrzebne, aby dziecko z position:absolute było względem navbar */
+  position: relative;
   display: flex;
   align-items: center;
   padding: 10px 20px;
   background: #1d5b6b;
-  height: 60px;               /* możesz dopasować */
+  height: 60px;
 }
 
 .logo {
@@ -21,7 +20,7 @@ body {
   gap: 10px;
   font-size: 1.2em;
   font-weight: bold;
-  margin-top: 7px; /* przesunięcie w dół o 5px */
+  margin-top: 7px;
 }
 
 .logo-img {
@@ -29,25 +28,10 @@ body {
   height: 40px;
 }
 
-.menu {
-  display: flex;
-  gap: 20px;
-}
-
-.menu a {
-  color: white;
-  text-decoration: none;
-  font-size: 0.95em;
-}
-
-.menu a:hover {
-  text-decoration: underline;
-}
-
 .user {
-  position: absolute;         /* przyklej do prawej krawędzi */
-  right: 0;                   /* 0px od prawej */
-  top: 50%;                   /* wyśrodkowanie w pionie */
+  position: absolute;
+  right: 0;
+  top: 50%;
   transform: translateY(-50%);
   display: flex;
   align-items: center;
@@ -68,41 +52,37 @@ body {
 
 .content {
   padding: 20px;
-  background: #2c2c2c;
   height: calc(100vh - 60px);
 }
-
-/* secound bar */
+/* second bar */
 .secondbar {
-  background: #242426; 
-  color: white;
+  background: #242426;
   padding: 10px 20px;
 }
 
 .submenu {
   display: flex;
-  gap: 20px;               /* odstępy między przyciskami */
+  gap: 20px;
 }
 
 .submenu button {
-  background: none;      /* bez tła */
-  border: none;          /* bez obramowania */
-  color: white;          /* biały napis */
-  cursor: pointer;       /* kursor jak dla linku */
-  font-size: 16px;       /* wielkość czcionki */
-  padding: 8px 12px;     /* odstępy dla wygodniejszego klikania */
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 8px 12px;
 }
 
 .submenu button:hover {
-  text-decoration: underline;  /* efekt hover np. podkreślenie */
+  text-decoration: underline;
 }
-
 /* ikona plus, dodawanie produktów */
 .add-product {
   display: flex;
   align-items: center;
-  margin-bottom: 15px; /* odstęp od tabeli */
-  margin-left: 30px; /* przesunięcie w prawo */
+  margin-bottom: 15px;
+  margin-left: 30px;
 }
 
 .add-btn {
@@ -130,9 +110,7 @@ body {
 
 .add-text {
   font-size: 16px;
-  color: white;
 }
-
 /* tabela po wciśnięciu przycisku "stany magazynowe" */
 .inventory {
   margin: 20px;
@@ -164,7 +142,6 @@ body {
 .hidden {
   display: none;
 }
-
 /* ekran dodawania nowego produktu */
 .modal {
   position: fixed;
@@ -172,7 +149,7 @@ body {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(44,44,44,0.95); /* zasłania tło */
+  background: rgba(44,44,44,0.95);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -191,7 +168,7 @@ body {
   max-width: 90%;
   display: flex;
   flex-direction: column;
-  gap: 15px; /* odstęp między labelami */
+  gap: 15px;
 }
 
 .modal-content h2 {
@@ -213,7 +190,7 @@ body {
   border: 1px solid #444;
   background: #242426;
   color: white;
-  margin-top: 5px; /* odstęp od label */
+  margin-top: 5px;
   font-size: 14px;
 }
 
@@ -244,14 +221,47 @@ body {
 .modal-buttons button:hover {
   opacity: 0.9;
 }
+/* Sekcja raportów */
+.reports-bar {
+  background-color: #242426;
+  padding: 10px;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
 
+.report-btn {
+  background-color: #3a3a3c;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s;
+}
+
+.report-btn:hover {
+  background-color: #505052;
+}
+
+.report-placeholder {
+  background-color: white;
+  height: 400px;
+  margin: 20px;
+  border-radius: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: black;
+}
 /* Ekran logowania */
 .login-container {
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  height: 100vh;           /* pełne okno przeglądarki */
+  height: 100vh;
   background-color: #2c2c2c;
   color: white;
 }
