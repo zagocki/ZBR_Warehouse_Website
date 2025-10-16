@@ -53,24 +53,36 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelector('.login-container').style.display = 'flex';
         document.getElementById('inventory').classList.add('hidden');
         document.getElementById('reports').classList.add('hidden');
+        document.getElementById('documents').classList.add('hidden');
     });
 
-    // Toggle sekcji inventory / reports
+    // Toggle sekcji inventory / reports / documents
     const btnStany = document.getElementById("btnStany");
     const btnRaporty = document.getElementById("btnRaporty");
+    const btnDokumenty = document.getElementById("btnDokumenty");
     const inventory = document.getElementById("inventory");
     const reports = document.getElementById("reports");
+    const documents = document.getElementById("documents");
 
     btnStany.addEventListener('click', () => {
         const isHidden = inventory.classList.contains('hidden');
         inventory.classList.toggle('hidden', !isHidden);
         reports.classList.add('hidden');
+        documents.classList.add('hidden');
     });
 
     btnRaporty.addEventListener('click', () => {
         const isHidden = reports.classList.contains('hidden');
         reports.classList.toggle('hidden', !isHidden);
         inventory.classList.add('hidden');
+        documents.classList.add('hidden');
+    });
+
+    btnDokumenty.addEventListener('click', () => {
+        const isHidden = documents.classList.contains('hidden');
+        documents.classList.toggle('hidden', !isHidden);
+        inventory.classList.add('hidden');
+        reports.classList.add('hidden');
     });
 
     // Modal

@@ -1,9 +1,23 @@
+/* Responsive design */
+@media (max-width: 768px) {
+  .submenu {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .inventory, .report-placeholder {
+    margin: 10px;
+    padding: 10px;
+  }
+}
+
+
 body {
   margin: 0;
   font-family: system-ui, Arial, sans-serif;
   background: #2c2c2c;
   color: white;
 }
+
 /* pierwszy header */
 .navbar {
   position: relative;
@@ -54,6 +68,7 @@ body {
   padding: 20px;
   height: calc(100vh - 60px);
 }
+
 /* second bar */
 .secondbar {
   background: #242426;
@@ -77,6 +92,7 @@ body {
 .submenu button:hover {
   text-decoration: underline;
 }
+
 /* ikona plus, dodawanie produktów */
 .add-product {
   display: flex;
@@ -111,6 +127,7 @@ body {
 .add-text {
   font-size: 16px;
 }
+
 /* tabela po wciśnięciu przycisku "stany magazynowe" */
 .inventory {
   margin: 20px;
@@ -139,9 +156,11 @@ body {
   background: #333;
 }
 
+/* ukrywanie sekcji */
 .hidden {
   display: none;
 }
+
 /* ekran dodawania nowego produktu */
 .modal {
   position: fixed;
@@ -221,7 +240,8 @@ body {
 .modal-buttons button:hover {
   opacity: 0.9;
 }
-/* Sekcja raportów */
+
+/* Sekcja raportów i dokumentów */
 .reports-bar {
   background-color: #242426;
   padding: 10px;
@@ -255,6 +275,7 @@ body {
   align-items: center;
   color: black;
 }
+
 /* Ekran logowania */
 .login-container {
   display: flex;
