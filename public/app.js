@@ -23,6 +23,30 @@ async function refresh(q='') {
     });
 }
 
+// Wydanie towaru - toggle widoku
+const btnWydanie = document.getElementById("btnWydanie"); // przycisk w secondbarze
+const wydanieTowaru = document.getElementById("wydanieTowaru");
+
+btnWydanie.addEventListener('click', () => {
+  wydanieTowaru.classList.toggle('hidden');
+  inventory.classList.add('hidden');
+  dokumenty.classList.add('hidden');
+});
+
+// Obsługa formularza
+const wydanieForm = document.getElementById("wydanieForm");
+wydanieForm.addEventListener("submit", (e) => {
+  e.preventDefault();
+
+  const produkt = document.getElementById("wydanieProdukt").value;
+  const ilosc = parseInt(document.getElementById("wydanieIlosc").value);
+  const odbiorca = document.getElementById("wydanieOdbiorca").value;
+
+  alert(`✅ Wydano ${ilosc} szt. produktu "${produkt}" dla ${odbiorca}.`);
+  wydanieForm.reset();
+});
+
+
 document.addEventListener('DOMContentLoaded', () => {
     // Logowanie
     const form = document.getElementById('loginForm');
@@ -57,33 +81,43 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Toggle sekcji inventory / reports / documents
-    const btnStany = document.getElementById("btnStany");
-    const btnRaporty = document.getElementById("btnRaporty");
-    const btnDokumenty = document.getElementById("btnDokumenty");
-    const inventory = document.getElementById("inventory");
-    const reports = document.getElementById("reports");
-    const documents = document.getElementById("documents");
+// === FUNKCJA: ukrywanie wszystkich sekcji ===
+function hideAllSections() {
+  document.querySelectorAll(".main-section").forEach(sec => sec.classList.add("hidden"));
+}
 
-    btnStany.addEventListener('click', () => {
-        const isHidden = inventory.classList.contains('hidden');
-        inventory.classList.toggle('hidden', !isHidden);
-        reports.classList.add('hidden');
-        documents.classList.add('hidden');
-    });
+// === PRZYCISKI ===
+const btnStany = document.getElementById("btnStany");
+const btnRaporty = document.getElementById("btnRaporty");
+const btnDokumenty = document.getElementById("btnDokumenty");
+const btnWydanie = document.getElementById("btnWydanie");
 
-    btnRaporty.addEventListener('click', () => {
-        const isHidden = reports.classList.contains('hidden');
-        reports.classList.toggle('hidden', !isHidden);
-        inventory.classList.add('hidden');
-        documents.classList.add('hidden');
-    });
+const inventory = document.getElementById("inventory");
+const reports = document.getElementById("reports");
+const documents = document.getElementById("documents");
+const wydanieTowaru = document.getElementById("wydanieTowaru");
 
-    btnDokumenty.addEventListener('click', () => {
-        const isHidden = documents.classList.contains('hidden');
-        documents.classList.toggle('hidden', !isHidden);
-        inventory.classList.add('hidden');
-        reports.classList.add('hidden');
-    });
+// === LOGIKA WYŚWIETLANIA ===
+btnStany.addEventListener('click', () => {
+  hideAllSections();
+  inventory.classList.remove('hidden');
+});
+
+btnRaporty.addEventListener('click', () => {
+  hideAllSections();
+  reports.classList.remove('hidden');
+});
+
+btnDokumenty.addEventListener('click', () => {
+  hideAllSections();
+  documents.classList.remove('hidden');
+});
+
+btnWydanie.addEventListener('click', () => {
+  hideAllSections();
+  wydanieTowaru.classList.remove('hidden');
+});
+
 
     // Modal
     const modal = document.getElementById("addProductModal");
@@ -110,4 +144,6 @@ document.addEventListener('DOMContentLoaded', () => {
         addProductForm.reset();
         modal.classList.add("hidden");
     });
+
+    
 });

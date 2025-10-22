@@ -319,3 +319,55 @@ body {
 .login-form button:hover {
   background: #164854;
 }
+
+/* === Sekcja Wydanie Towaru === */
+.wydanie-container {
+  background: #242426;
+  padding: 20px;
+  border-radius: 12px;
+  margin: 50px auto;          /* wyśrodkowanie poziome */
+  color: white;
+  max-width: 600px;
+  display: flex;              /* wyśrodkowanie pionowe i poziome */
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 0 10px rgba(0,0,0,0.5);
+}
+
+.wydanie-container h2 {
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+#wydanieForm {
+  width: 100%;
+}
+
+#wydanieForm label {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 15px;
+  width: 100%;
+}
+
+#wydanieForm input {
+  padding: 8px;
+  border: 1px solid #444;
+  border-radius: 8px;
+  background: #2c2c2c;
+  color: white;
+}
+
+#wydanieForm button {
+  background-color: #0F7294;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+#wydanieForm button:hover {
+  opacity: 0.9;
+}

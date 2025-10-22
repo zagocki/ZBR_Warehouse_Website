@@ -34,67 +34,91 @@
   <div class="secondbar main-content" style="display:none;">
     <nav class="submenu">
       <button id="btnStany" class="submenu-btn">Stany magazynowe</button>
-      <button class="submenu-btn">Wydanie towaru</button>
+      <button id="btnWydanie" class="submenu-btn">Wydanie towaru</button>
       <button id="btnRaporty" class="submenu-btn">Generowanie raportów</button>
       <button id="btnDokumenty" class="submenu-btn">Dokumenty</button>
     </nav>
   </div>
 
-  <main class="content main-content" style="display:none;">
-    <!-- Sekcja inventory -->
-    <div id="inventory" class="hidden">
-      <div class="add-product">
-        <button id="openModal" class="add-btn"><span class="plus">+</span></button>
-        <span class="add-text">Dodaj nowy produkt</span>
-      </div>
-      <div class="inventory table-wrapper">
-        <table>
-          <thead>
-            <tr>
-              <th>Produkt</th>
-              <th>SKU</th>
-              <th>Ilość</th>
-              <th>Data</th>
-              <th>Dział</th>
-            </tr>
-          </thead>
-          <tbody id="productTableBody">
-            <tr>
-              <td>Przykładowy produkt</td>
-              <td>SKU123</td>
-              <td>50</td>
-              <td>2025-09-15</td>
-              <td>Magazyn A</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
+<main class="content main-content" style="display:none;">
 
-    <!-- Sekcja raportów -->
-    <div id="reports" class="hidden">
-      <div class="reports-bar">
-        <button class="report-btn">Raport 1</button>
-        <button class="report-btn">Raport 2</button>
-        <button class="report-btn">Raport 3</button>
-      </div>
-      <div class="report-placeholder">
-        <p>Podgląd raportu pojawi się tutaj</p>
-      </div>
+  <!-- Sekcja STANY -->
+  <div id="inventory" class="main-section hidden">
+    <div class="add-product">
+      <button id="openModal" class="add-btn"><span class="plus">+</span></button>
+      <span class="add-text">Dodaj nowy produkt</span>
     </div>
+    <div class="inventory table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Produkt</th>
+            <th>SKU</th>
+            <th>Ilość</th>
+            <th>Data</th>
+            <th>Dział</th>
+          </tr>
+        </thead>
+        <tbody id="productTableBody">
+          <tr>
+            <td>Przykładowy produkt</td>
+            <td>SKU123</td>
+            <td>50</td>
+            <td>2025-09-15</td>
+            <td>Magazyn A</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 
-    <!-- Sekcja dokumentów -->
-    <div id="documents" class="hidden">
-      <div class="reports-bar">
-        <button class="report-btn">Dokument 1</button>
-        <button class="report-btn">Dokument 2</button>
-        <button class="report-btn">Dokument 3</button>
-      </div>
-      <div class="report-placeholder">
-        <p>Podgląd dokumentu pojawi się tutaj</p>
-      </div>
+  <!-- Sekcja RAPORTÓW -->
+  <div id="reports" class="main-section hidden">
+    <div class="reports-bar">
+      <button class="report-btn">Raport 1</button>
+      <button class="report-btn">Raport 2</button>
+      <button class="report-btn">Raport 3</button>
     </div>
-  </main>
+    <div class="report-placeholder">
+      <p>Podgląd raportu pojawi się tutaj</p>
+    </div>
+  </div>
+
+  <!-- Sekcja WYDANIA TOWARU -->
+  <div id="wydanieTowaru" class="main-section hidden">
+    <div class="wydanie-container">
+      <h2>Wydanie towaru</h2>
+      <form id="wydanieForm">
+        <label>Produkt:
+          <input type="text" id="wydanieProdukt" placeholder="Nazwa produktu" required>
+        </label>
+        <label>Ilość:
+          <input type="number" id="wydanieIlosc" min="1" required>
+        </label>
+        <label>Odbiorca:
+          <input type="text" id="wydanieOdbiorca" placeholder="Dział / Klient" required>
+        </label>
+        <div class="modal-buttons">
+          <button type="submit">Wydaj</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Sekcja DOKUMENTÓW -->
+  <div id="documents" class="main-section hidden">
+    <div class="reports-bar">
+      <button class="report-btn">Dokument 1</button>
+      <button class="report-btn">Dokument 2</button>
+      <button class="report-btn">Dokument 3</button>
+    </div>
+    <div class="report-placeholder">
+      <p>Podgląd dokumentu pojawi się tutaj</p>
+    </div>
+  </div>
+
+</main>
+
 
   <!-- Modal dodawania produktu -->
   <div id="addProductModal" class="modal hidden">
