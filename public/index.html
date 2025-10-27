@@ -7,10 +7,11 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+
   <!-- Ekran logowania -->
   <div class="login-container">
     <h2>Logowanie</h2>
-    <form class="login-form" id="loginForm">
+    <form id="loginForm" class="login-form">
       <label for="username">Login:</label>
       <input type="text" id="username" name="username" required>
       <label for="password">Hasło:</label>
@@ -19,7 +20,7 @@
     </form>
   </div>
 
-  <!-- Reszta strony -->
+  <!-- Navbar -->
   <header class="navbar main-content" style="display:none;">
     <div class="logo">
       <img src="images/ZBR_logo.png" alt="Logo ZBR" class="logo-img">
@@ -31,6 +32,7 @@
     </div>
   </header>
 
+  <!-- Menu -->
   <div class="secondbar main-content" style="display:none;">
     <nav class="submenu">
       <button id="btnStany" class="submenu-btn">Stany magazynowe</button>
@@ -44,10 +46,17 @@
 
   <!-- Sekcja STANY -->
   <div id="inventory" class="main-section hidden">
-    <div class="add-product">
-      <button id="openModal" class="add-btn"><span class="plus">+</span></button>
-      <span class="add-text">Dodaj nowy produkt</span>
+    <div class="inventory-header">
+      <div class="add-product">
+        <button id="openModal" class="add-btn"><span class="plus">+</span></button>
+        <span class="add-text">Dodaj nowy produkt</span>
+      </div>
+      <div class="search-bar">
+        <label for="searchProduct">Szukaj:</label>
+        <input type="text" id="searchProduct" placeholder="Wyszukaj produkt...">
+      </div>
     </div>
+
     <div class="inventory table-wrapper">
       <table>
         <thead>
@@ -119,35 +128,46 @@
 
 </main>
 
+<!-- Modal dodawania produktu -->
+<div id="addProductModal" class="modal hidden">
+  <div class="modal-content">
+    <h2>Dodaj nowy produkt</h2>
+    <form id="addProductForm">
+      <label>Produkt
+        <input type="text" name="produkt" required>
+      </label>
+      <label>SKU
+        <input type="text" name="sku" required>
+      </label>
+      <label>Ilość
+        <input type="number" name="ilosc" required>
+      </label>
+      <label>Data
+        <input type="date" name="data" required>
+      </label>
+      <label>Dział
+        <input type="text" name="dzial" required>
+      </label>
+      <div class="modal-buttons">
+        <button type="submit">Dodaj</button>
+        <button type="button" id="closeModal">Anuluj</button>
+      </div>
+    </form>
+  </div>
+</div>
 
-  <!-- Modal dodawania produktu -->
-  <div id="addProductModal" class="modal hidden">
-    <div class="modal-content">
-      <h2>Dodaj nowy produkt</h2>
-      <form id="addProductForm">
-        <label>Produkt
-          <input type="text" name="produkt" required>
-        </label>
-        <label>SKU
-          <input type="text" name="sku" required>
-        </label>
-        <label>Ilość
-          <input type="number" name="ilosc" required>
-        </label>
-        <label>Data
-          <input type="date" name="data" required>
-        </label>
-        <label>Dział
-          <input type="text" name="dzial" required>
-        </label>
-        <div class="modal-buttons">
-          <button type="submit">Dodaj</button>
-          <button type="button" id="closeModal">Anuluj</button>
-        </div>
-      </form>
+<!-- Modal potwierdzenia -->
+<div id="confirmModal" class="modal hidden">
+  <div class="modal-content confirm">
+    <h3>Potwierdzenie operacji</h3>
+    <p>Czy na pewno chcesz wydać ten towar?</p>
+    <div class="modal-buttons">
+      <button id="confirmYes">Tak</button>
+      <button id="confirmNo">Nie</button>
     </div>
   </div>
+</div>
 
-  <script src="app.js"></script>
+<script src="app.js"></script>
 </body>
 </html>
