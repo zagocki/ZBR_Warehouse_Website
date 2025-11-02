@@ -1,0 +1,13 @@
+# Ignoruj foldery i pliki tymczasowe
+node_modules/
+.env
+.DS_Store
+npm-debug.log*
+
+# Ignoruj bazy lokalne i inicjalizacyjne
+warehouse.db
+db-init.sql
+
+# Ignoruj pliki builda (na wypadek gdybyś dodał)
+dist/
+build/

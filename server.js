@@ -1,38 +1,25 @@
 const express = require('express');
 const path = require('path');
-const sqlite3 = require('sqlite3').verbose();
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
+const sql = require("mssql");
 
 const app = express();
-const db = new sqlite3.Database('./warehouse.db');
+
+// Konfiguracja bazy danych Azure SQL
+const dbConfig = {
+  user: process.env.SQL_USER,
+  password: process.env.SQL_PASSWORD,
+  server: process.env.SQL_SERVER,   // np. twojserver.database.windows.net
+  database: process.env.SQL_DATABASE,
+  options: { encrypt: true }
+};
+
+const JWT_SECRET = process.env.JWT_SECRET || "super_tajny_klucz";
 
 // Middleware
 app.use(express.json());
 app.use(express.static("public"));
-
-const JWT_SECRET = process.env.JWT_SECRET || "super_tajny_klucz";
-
-// Tworzymy tabele, jeśli nie istnieją
-db.serialize(() => {
-  db.run(`
-    CREATE TABLE IF NOT EXISTS users (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      username TEXT UNIQUE,
-      passwordHash TEXT
-    )
-  `);
-  db.run(`
-    CREATE TABLE IF NOT EXISTS products (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT,
-      sku TEXT,
-      qty INTEGER DEFAULT 0,
-      date TEXT,
-      location TEXT
-    )
-  `);
-});
 
 /* ===============================
    🔐 Rejestracja użytkownika
@@ -43,20 +30,26 @@ app.post("/register", async (req, res) => {
     return res.status(400).json({ error: "Wymagane pola: login i hasło" });
 
   try {
+    const pool = await sql.connect(dbConfig);
+
+    // Sprawdź, czy istnieje
+    const checkUser = await pool.request()
+      .input("username", sql.NVarChar, username)
+      .query("SELECT * FROM users WHERE username = @username");
+
+    if (checkUser.recordset.length > 0) {
+      return res.status(400).json({ error: "Użytkownik już istnieje" });
+    }
+
     const hash = await bcrypt.hash(password, 10);
-    db.run(
-      "INSERT INTO users (username, passwordHash) VALUES (?, ?)",
-      [username, hash],
-      function (err) {
-        if (err) {
-          if (err.message.includes("UNIQUE"))
-            return res.status(400).json({ error: "Użytkownik już istnieje" });
-          return res.status(500).json({ error: err.message });
-        }
-        res.json({ success: true, id: this.lastID });
-      }
-    );
+    await pool.request()
+      .input("username", sql.NVarChar, username)
+      .input("passwordHash", sql.NVarChar, hash)
+      .query("INSERT INTO users (username, passwordHash) VALUES (@username, @passwordHash)");
+
+    res.json({ success: true, message: "Użytkownik zarejestrowany" });
   } catch (err) {
+    console.error("❌ Błąd rejestracji:", err);
     res.status(500).json({ error: "Błąd serwera" });
   }
 });
@@ -64,25 +57,30 @@ app.post("/register", async (req, res) => {
 /* ===============================
    🔑 Logowanie użytkownika
    =============================== */
-app.post("/login", (req, res) => {
+app.post("/login", async (req, res) => {
   const { username, password } = req.body;
   if (!username || !password)
     return res.status(400).json({ error: "Podaj login i hasło" });
 
-  db.get("SELECT * FROM users WHERE username = ?", [username], async (err, user) => {
-    if (err) return res.status(500).json({ error: err.message });
-    if (!user) return res.status(401).json({ message: "Niepoprawny login lub hasło" });
+  try {
+    const pool = await sql.connect(dbConfig);
+    const result = await pool.request()
+      .input("username", sql.NVarChar, username)
+      .query("SELECT * FROM users WHERE username = @username");
 
+    if (result.recordset.length === 0)
+      return res.status(401).json({ message: "Niepoprawny login lub hasło" });
+
+    const user = result.recordset[0];
     const valid = await bcrypt.compare(password, user.passwordHash);
     if (!valid) return res.status(401).json({ message: "Niepoprawny login lub hasło" });
 
-    const token = jwt.sign(
-      { id: user.id, username: user.username },
-      JWT_SECRET,
-      { expiresIn: "1h" }
-    );
+    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: "1h" });
     res.json({ token });
-  });
+  } catch (err) {
+    console.error("❌ Błąd logowania:", err);
+    res.status(500).json({ error: "Błąd serwera" });
+  }
 });
 
 /* ===============================
@@ -108,76 +106,116 @@ app.get("/profile", verifyToken, (req, res) => {
 });
 
 /* ===============================
-   📦 CRUD dla produktów
+   📦 CRUD dla produktów (Azure SQL)
    =============================== */
-app.get("/api/products", (req, res) => {
-  db.all("SELECT * FROM products", [], (err, rows) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json(rows);
-  });
+app.get("/api/products", async (req, res) => {
+  try {
+    const pool = await sql.connect(dbConfig);
+    const result = await pool.request().query("SELECT * FROM products");
+    res.json(result.recordset);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-app.post("/api/products", (req, res) => {
+app.post("/api/products", async (req, res) => {
   const { name, sku, qty, date, location } = req.body;
-  db.run(
-    "INSERT INTO products (name, sku, qty, date, location) VALUES (?, ?, ?, ?, ?)",
-    [name, sku, qty, date, location],
-    function (err) {
-      if (err) return res.status(500).json({ error: err.message });
-      res.json({ id: this.lastID, name, sku, qty, date, location });
-    }
-  );
+  try {
+    const pool = await sql.connect(dbConfig);
+    const result = await pool.request()
+      .input("name", sql.NVarChar, name)
+      .input("sku", sql.NVarChar, sku)
+      .input("qty", sql.Int, qty)
+      .input("date", sql.NVarChar, date)
+      .input("location", sql.NVarChar, location)
+      .query("INSERT INTO products (name, sku, qty, date, location) OUTPUT INSERTED.* VALUES (@name, @sku, @qty, @date, @location)");
+
+    res.json(result.recordset[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-app.put("/api/products/:id", (req, res) => {
+app.put("/api/products/:id", async (req, res) => {
   const { name, location } = req.body;
-  db.run(
-    "UPDATE products SET name = COALESCE(?, name), location = COALESCE(?, location) WHERE id = ?",
-    [name, location, req.params.id],
-    function (err) {
-      if (err) return res.status(500).json({ error: err.message });
-      res.json({ updated: this.changes });
-    }
-  );
+  try {
+    const pool = await sql.connect(dbConfig);
+    await pool.request()
+      .input("id", sql.Int, req.params.id)
+      .input("name", sql.NVarChar, name)
+      .input("location", sql.NVarChar, location)
+      .query("UPDATE products SET name = COALESCE(@name, name), location = COALESCE(@location, location) WHERE id = @id");
+
+    res.json({ updated: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-app.post("/api/receive", (req, res) => {
+app.post("/api/receive", async (req, res) => {
   const { id, qty } = req.body;
   if (!id || !qty) return res.status(400).json({ error: "id i qty wymagane" });
 
-  db.run("UPDATE products SET qty = qty + ? WHERE id = ?", [qty, id], function (err) {
-    if (err) return res.status(500).json({ error: err.message });
-    db.get("SELECT * FROM products WHERE id = ?", [id], (err, row) => {
-      if (err) return res.status(500).json({ error: err.message });
-      res.json(row);
-    });
-  });
+  try {
+    const pool = await sql.connect(dbConfig);
+    await pool.request()
+      .input("id", sql.Int, id)
+      .input("qty", sql.Int, qty)
+      .query("UPDATE products SET qty = qty + @qty WHERE id = @id");
+
+    const result = await pool.request()
+      .input("id", sql.Int, id)
+      .query("SELECT * FROM products WHERE id = @id");
+
+    res.json(result.recordset[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-app.post("/api/issue", (req, res) => {
+app.post("/api/issue", async (req, res) => {
   const { id, qty } = req.body;
   if (!id || !qty) return res.status(400).json({ error: "id i qty wymagane" });
 
-  db.get("SELECT qty FROM products WHERE id = ?", [id], (err, row) => {
-    if (err) return res.status(500).json({ error: err.message });
-    if (!row) return res.status(404).json({ error: "Produkt nie znaleziony" });
-    if (row.qty < qty) return res.status(400).json({ error: "Za mało w magazynie" });
+  try {
+    const pool = await sql.connect(dbConfig);
+    const product = await pool.request()
+      .input("id", sql.Int, id)
+      .query("SELECT qty FROM products WHERE id = @id");
 
-    db.run("UPDATE products SET qty = qty - ? WHERE id = ?", [qty, id], function (err) {
-      if (err) return res.status(500).json({ error: err.message });
-      db.get("SELECT * FROM products WHERE id = ?", [id], (err, row) => {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json(row);
-      });
-    });
-  });
+    if (product.recordset.length === 0)
+      return res.status(404).json({ error: "Produkt nie znaleziony" });
+
+    const currentQty = product.recordset[0].qty;
+    if (currentQty < qty)
+      return res.status(400).json({ error: "Za mało w magazynie" });
+
+    await pool.request()
+      .input("id", sql.Int, id)
+      .input("qty", sql.Int, qty)
+      .query("UPDATE products SET qty = qty - @qty WHERE id = @id");
+
+    const updated = await pool.request()
+      .input("id", sql.Int, id)
+      .query("SELECT * FROM products WHERE id = @id");
+
+    res.json(updated.recordset[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-app.delete("/api/products/:id", (req, res) => {
-  db.run("DELETE FROM products WHERE id = ?", [req.params.id], function (err) {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json({ deleted: this.changes });
-  });
+app.delete("/api/products/:id", async (req, res) => {
+  try {
+    const pool = await sql.connect(dbConfig);
+    await pool.request()
+      .input("id", sql.Int, req.params.id)
+      .query("DELETE FROM products WHERE id = @id");
+
+    res.json({ deleted: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 /* ===============================
