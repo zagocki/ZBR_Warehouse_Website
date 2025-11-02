@@ -221,6 +221,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 15px;
+  animation: fadeIn 0.3s ease;
 }
 
 .modal-content h2 {
@@ -273,6 +274,32 @@ body {
 .modal-buttons button:hover {
   opacity: 0.9;
 }
+/* =========================
+   Modal komunikatów systemowych
+   ========================= */
+.alert-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #242426;
+  color: white;
+  padding: 20px 30px;
+  border-radius: 10px;
+  box-shadow: 0 0 15px rgba(0,0,0,0.7);
+  text-align: center;
+  z-index: 2000;
+  animation: fadeIn 0.3s ease;
+}
+
+.alert-modal.success {
+  border-left: 5px solid #0F7294;
+}
+
+.alert-modal.error {
+  border-left: 5px solid #c0392b;
+}
+
 
 /* =========================
    Modal potwierdzenia wydania
@@ -409,6 +436,24 @@ body {
 .login-form button:hover {
   background: #164854;
 }
+
+/* Styl przycisku rejestracji */
+.secondary-btn {
+  background-color: #2c2c2c;
+  color: #fff;
+  border: 1px solid #1d5b6b;
+  padding: 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 8px;
+}
+
+.secondary-btn:hover {
+  background-color: #1d5b6b;
+  color: #fff;
+}
+
 
 /* =========================
    Sekcja Wydanie Towaru
