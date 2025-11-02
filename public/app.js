@@ -1,7 +1,15 @@
 // --- Funkcja pomocnicza do komunikacji z API ---
 async function api(path, method = "GET", body) {
-  const opts = { method, headers: { "Content-Type": "application/json" } };
+  const token = localStorage.getItem("token");
+  const opts = {
+    method,
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: "Bearer " + token } : {})
+    },
+  };
   if (body) opts.body = JSON.stringify(body);
+
   const res = await fetch("/api" + path, opts);
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: res.statusText }));
@@ -60,6 +68,9 @@ document.addEventListener("DOMContentLoaded", () => {
       // 🔹 Aktualizuj nazwę użytkownika w headerze
       const userSpan = document.querySelector(".user span");
       userSpan.textContent = `Witaj, ${profile.message.replace("Witaj ", "").replace("!", "")}`;
+
+      // 🔹 Odśwież produkty po zalogowaniu
+      await refresh();
     } else {
       alert("❌ Błędny login lub hasło");
     }
@@ -86,6 +97,7 @@ document.addEventListener("DOMContentLoaded", () => {
       document.querySelector(".login-container").style.display = "none";
       document.querySelectorAll(".main-content").forEach((el) => (el.style.display = "block"));
       document.querySelector(".user span").textContent = `Witaj, ${data.message.replace("Witaj ", "").replace("!", "")}`;
+      await refresh();
     } else {
       localStorage.removeItem("token");
     }
@@ -138,12 +150,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const addProductForm = document.getElementById("addProductForm");
   const tableBody = document.getElementById("productTableBody");
-  addProductForm.addEventListener("submit", (e) => {
+  addProductForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     const { produkt, sku, ilosc, data, dzial } = addProductForm;
-    const tr = document.createElement("tr");
-    tr.innerHTML = `<td>${produkt.value}</td><td>${sku.value}</td><td>${ilosc.value}</td><td>${data.value}</td><td>${dzial.value}</td>`;
-    tableBody.appendChild(tr);
+    await api("/products", "POST", {
+      name: produkt.value,
+      sku: sku.value,
+      qty: parseInt(ilosc.value),
+      date: data.value,
+      location: dzial.value,
+    });
+    await refresh();
     addProductForm.reset();
     modal.classList.add("hidden");
   });

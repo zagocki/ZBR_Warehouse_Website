@@ -14,10 +14,14 @@
     <form id="loginForm" class="login-form">
       <label for="username">Login:</label>
       <input type="text" id="username" name="username" required>
+
       <label for="password">Hasło:</label>
       <input type="password" id="password" name="password" required>
-      <button type="submit">Zaloguj się</button>
-      <button type="button" id="registerBtn">Zarejestruj się</button>
+
+      <div class="login-buttons">
+        <button type="submit">Zaloguj się</button>
+        <button type="button" id="registerBtn">Zarejestruj się</button>
+      </div>
     </form>
   </div>
 
@@ -28,7 +32,7 @@
       <span>ZBR Warehouse</span>
     </div>
     <div class="user">
-      <span>Witaj, Kamil</span>
+      <span>Witaj, Użytkowniku</span>
       <button class="logout">Wyloguj się</button>
     </div>
   </header>
@@ -43,132 +47,127 @@
     </nav>
   </div>
 
-<main class="content main-content" style="display:none;">
+  <!-- Główna zawartość -->
+  <main class="content main-content" style="display:none;">
 
-  <!-- Sekcja STANY -->
-  <div id="inventory" class="main-section hidden">
-    <div class="inventory-header">
-      <div class="add-product">
-        <button id="openModal" class="add-btn"><span class="plus">+</span></button>
-        <span class="add-text">Dodaj nowy produkt</span>
+    <!-- Sekcja STANY -->
+    <div id="inventory" class="main-section hidden">
+      <div class="inventory-header">
+        <div class="add-product">
+          <button id="openModal" class="add-btn"><span class="plus">+</span></button>
+          <span class="add-text">Dodaj nowy produkt</span>
+        </div>
+        <div class="search-bar">
+          <label for="searchProduct">Szukaj:</label>
+          <input type="text" id="searchProduct" placeholder="Wyszukaj produkt...">
+        </div>
       </div>
-      <div class="search-bar">
-        <label for="searchProduct">Szukaj:</label>
-        <input type="text" id="searchProduct" placeholder="Wyszukaj produkt...">
+
+      <div class="inventory table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Produkt</th>
+              <th>SKU</th>
+              <th>Ilość</th>
+              <th>Data</th>
+              <th>Dział</th>
+            </tr>
+          </thead>
+          <tbody id="productTableBody">
+            <!-- wiersze generowane przez app.js -->
+          </tbody>
+        </table>
       </div>
     </div>
 
-    <div class="inventory table-wrapper">
-      <table>
-        <thead>
-          <tr>
-            <th>Produkt</th>
-            <th>SKU</th>
-            <th>Ilość</th>
-            <th>Data</th>
-            <th>Dział</th>
-          </tr>
-        </thead>
-        <tbody id="productTableBody">
-          <tr>
-            <td>Przykładowy produkt</td>
-            <td>SKU123</td>
-            <td>50</td>
-            <td>2025-09-15</td>
-            <td>Magazyn A</td>
-          </tr>
-        </tbody>
-      </table>
+    <!-- Sekcja RAPORTÓW -->
+    <div id="reports" class="main-section hidden">
+      <div class="reports-bar">
+        <button class="report-btn">Raport 1</button>
+        <button class="report-btn">Raport 2</button>
+        <button class="report-btn">Raport 3</button>
+      </div>
+      <div class="report-placeholder">
+        <p>Podgląd raportu pojawi się tutaj</p>
+      </div>
     </div>
-  </div>
 
-  <!-- Sekcja RAPORTÓW -->
-  <div id="reports" class="main-section hidden">
-    <div class="reports-bar">
-      <button class="report-btn">Raport 1</button>
-      <button class="report-btn">Raport 2</button>
-      <button class="report-btn">Raport 3</button>
+    <!-- Sekcja WYDANIA TOWARU -->
+    <div id="wydanieTowaru" class="main-section hidden">
+      <div class="wydanie-container">
+        <h2>Wydanie towaru</h2>
+        <form id="wydanieForm">
+          <label>Produkt:
+            <input type="text" id="wydanieProdukt" placeholder="Nazwa produktu" required>
+          </label>
+          <label>Ilość:
+            <input type="number" id="wydanieIlosc" min="1" required>
+          </label>
+          <label>Odbiorca:
+            <input type="text" id="wydanieOdbiorca" placeholder="Dział / Klient" required>
+          </label>
+          <div class="modal-buttons">
+            <button type="submit">Wydaj</button>
+          </div>
+        </form>
+      </div>
     </div>
-    <div class="report-placeholder">
-      <p>Podgląd raportu pojawi się tutaj</p>
-    </div>
-  </div>
 
-  <!-- Sekcja WYDANIA TOWARU -->
-  <div id="wydanieTowaru" class="main-section hidden">
-    <div class="wydanie-container">
-      <h2>Wydanie towaru</h2>
-      <form id="wydanieForm">
-        <label>Produkt:
-          <input type="text" id="wydanieProdukt" placeholder="Nazwa produktu" required>
+    <!-- Sekcja DOKUMENTÓW -->
+    <div id="documents" class="main-section hidden">
+      <div class="reports-bar">
+        <button class="report-btn">Dokument 1</button>
+        <button class="report-btn">Dokument 2</button>
+        <button class="report-btn">Dokument 3</button>
+      </div>
+      <div class="report-placeholder">
+        <p>Podgląd dokumentu pojawi się tutaj</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- Modal dodawania produktu -->
+  <div id="addProductModal" class="modal hidden">
+    <div class="modal-content">
+      <h2>Dodaj nowy produkt</h2>
+      <form id="addProductForm">
+        <label>Produkt
+          <input type="text" name="produkt" required>
         </label>
-        <label>Ilość:
-          <input type="number" id="wydanieIlosc" min="1" required>
+        <label>SKU
+          <input type="text" name="sku" required>
         </label>
-        <label>Odbiorca:
-          <input type="text" id="wydanieOdbiorca" placeholder="Dział / Klient" required>
+        <label>Ilość
+          <input type="number" name="ilosc" required>
+        </label>
+        <label>Data
+          <input type="date" name="data" required>
+        </label>
+        <label>Dział
+          <input type="text" name="dzial" required>
         </label>
         <div class="modal-buttons">
-          <button type="submit">Wydaj</button>
+          <button type="submit">Dodaj</button>
+          <button type="button" id="closeModal">Anuluj</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- Sekcja DOKUMENTÓW -->
-  <div id="documents" class="main-section hidden">
-    <div class="reports-bar">
-      <button class="report-btn">Dokument 1</button>
-      <button class="report-btn">Dokument 2</button>
-      <button class="report-btn">Dokument 3</button>
-    </div>
-    <div class="report-placeholder">
-      <p>Podgląd dokumentu pojawi się tutaj</p>
-    </div>
-  </div>
-
-</main>
-
-<!-- Modal dodawania produktu -->
-<div id="addProductModal" class="modal hidden">
-  <div class="modal-content">
-    <h2>Dodaj nowy produkt</h2>
-    <form id="addProductForm">
-      <label>Produkt
-        <input type="text" name="produkt" required>
-      </label>
-      <label>SKU
-        <input type="text" name="sku" required>
-      </label>
-      <label>Ilość
-        <input type="number" name="ilosc" required>
-      </label>
-      <label>Data
-        <input type="date" name="data" required>
-      </label>
-      <label>Dział
-        <input type="text" name="dzial" required>
-      </label>
+  <!-- Modal potwierdzenia -->
+  <div id="confirmModal" class="modal hidden">
+    <div class="modal-content confirm">
+      <h3>Potwierdzenie operacji</h3>
+      <p>Czy na pewno chcesz wydać ten towar?</p>
       <div class="modal-buttons">
-        <button type="submit">Dodaj</button>
-        <button type="button" id="closeModal">Anuluj</button>
+        <button id="confirmYes">Tak</button>
+        <button id="confirmNo">Nie</button>
       </div>
-    </form>
-  </div>
-</div>
-
-<!-- Modal potwierdzenia -->
-<div id="confirmModal" class="modal hidden">
-  <div class="modal-content confirm">
-    <h3>Potwierdzenie operacji</h3>
-    <p>Czy na pewno chcesz wydać ten towar?</p>
-    <div class="modal-buttons">
-      <button id="confirmYes">Tak</button>
-      <button id="confirmNo">Nie</button>
     </div>
   </div>
-</div>
 
-<script src="app.js"></script>
+  <!-- Skrypt -->
+  <script src="app.js"></script>
 </body>
 </html>

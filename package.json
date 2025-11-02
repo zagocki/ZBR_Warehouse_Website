@@ -1,7 +1,7 @@
 {
   "name": "warehouse-app",
   "version": "1.0.0",
-  "description": "ZBR Warehouse - aplikacja magazynowa z logowaniem JWT i SQLite",
+  "description": "ZBR Warehouse - aplikacja magazynowa z logowaniem JWT i bazą Azure SQL",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -9,14 +9,22 @@
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",
+    "dotenv": "^17.2.3",
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",
-    "sqlite3": "^5.1.6",
     "mssql": "^12.0.0"
   },
   "engines": {
     "node": "22.x"
   },
+  "keywords": [
+    "warehouse",
+    "inventory",
+    "azure",
+    "nodejs",
+    "express",
+    "jwt"
+  ],
   "author": "ZBR Team",
   "license": "MIT"
 }

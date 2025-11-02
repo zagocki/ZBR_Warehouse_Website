@@ -1,3 +1,5 @@
+require("dotenv").config();
+
 const express = require('express');
 const path = require('path');
 const jwt = require("jsonwebtoken");
@@ -6,14 +8,39 @@ const sql = require("mssql");
 
 const app = express();
 
-// Konfiguracja bazy danych Azure SQL
+// ==========================================
+// 🔧 Konfiguracja bazy danych Azure SQL
+// ==========================================
 const dbConfig = {
   user: process.env.SQL_USER,
   password: process.env.SQL_PASSWORD,
   server: process.env.SQL_SERVER,   // np. twojserver.database.windows.net
   database: process.env.SQL_DATABASE,
-  options: { encrypt: true }
+  options: {
+    encrypt: true,
+    trustServerCertificate: false
+  }
 };
+
+
+// ==========================================
+// 🔌 Połączenie z bazą danych przy starcie
+// ==========================================
+async function connectDB() {
+  try {
+    await sql.connect(dbConfig);
+    console.log("✅ Połączono z bazą danych Azure SQL");
+  } catch (err) {
+    console.error("❌ Błąd połączenia z bazą danych:", err);
+  }
+}
+connectDB();
+console.log("ENV TEST:", {
+  SQL_SERVER: process.env.SQL_SERVER,
+  SQL_DATABASE: process.env.SQL_DATABASE,
+  SQL_USER: process.env.SQL_USER
+});
+
 
 const JWT_SECRET = process.env.JWT_SECRET || "super_tajny_klucz";
 
@@ -21,25 +48,22 @@ const JWT_SECRET = process.env.JWT_SECRET || "super_tajny_klucz";
 app.use(express.json());
 app.use(express.static("public"));
 
-/* ===============================
-   🔐 Rejestracja użytkownika
-   =============================== */
+// ==========================================
+// 🔐 Rejestracja użytkownika
+// ==========================================
 app.post("/register", async (req, res) => {
   const { username, password } = req.body;
   if (!username || !password)
     return res.status(400).json({ error: "Wymagane pola: login i hasło" });
 
   try {
-    const pool = await sql.connect(dbConfig);
-
-    // Sprawdź, czy istnieje
+    const pool = await sql.connect();
     const checkUser = await pool.request()
       .input("username", sql.NVarChar, username)
       .query("SELECT * FROM users WHERE username = @username");
 
-    if (checkUser.recordset.length > 0) {
+    if (checkUser.recordset.length > 0)
       return res.status(400).json({ error: "Użytkownik już istnieje" });
-    }
 
     const hash = await bcrypt.hash(password, 10);
     await pool.request()
@@ -47,23 +71,23 @@ app.post("/register", async (req, res) => {
       .input("passwordHash", sql.NVarChar, hash)
       .query("INSERT INTO users (username, passwordHash) VALUES (@username, @passwordHash)");
 
-    res.json({ success: true, message: "Użytkownik zarejestrowany" });
+    res.json({ success: true, message: "✅ Użytkownik został zarejestrowany" });
   } catch (err) {
     console.error("❌ Błąd rejestracji:", err);
-    res.status(500).json({ error: "Błąd serwera" });
+    res.status(500).json({ error: "Błąd serwera podczas rejestracji" });
   }
 });
 
-/* ===============================
-   🔑 Logowanie użytkownika
-   =============================== */
+// ==========================================
+// 🔑 Logowanie użytkownika
+// ==========================================
 app.post("/login", async (req, res) => {
   const { username, password } = req.body;
   if (!username || !password)
     return res.status(400).json({ error: "Podaj login i hasło" });
 
   try {
-    const pool = await sql.connect(dbConfig);
+    const pool = await sql.connect();
     const result = await pool.request()
       .input("username", sql.NVarChar, username)
       .query("SELECT * FROM users WHERE username = @username");
@@ -79,13 +103,13 @@ app.post("/login", async (req, res) => {
     res.json({ token });
   } catch (err) {
     console.error("❌ Błąd logowania:", err);
-    res.status(500).json({ error: "Błąd serwera" });
+    res.status(500).json({ error: "Błąd serwera podczas logowania" });
   }
 });
 
-/* ===============================
-   🛡️ Middleware autoryzacji JWT
-   =============================== */
+// ==========================================
+// 🛡️ Middleware autoryzacji JWT
+// ==========================================
 function verifyToken(req, res, next) {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
@@ -98,22 +122,23 @@ function verifyToken(req, res, next) {
   });
 }
 
-/* ===============================
-   👤 Profil użytkownika (test JWT)
-   =============================== */
+// ==========================================
+// 👤 Endpoint testowy /profile
+// ==========================================
 app.get("/profile", verifyToken, (req, res) => {
   res.json({ message: `Witaj ${req.user.username}!`, id: req.user.id });
 });
 
-/* ===============================
-   📦 CRUD dla produktów (Azure SQL)
-   =============================== */
+// ==========================================
+// 📦 CRUD dla produktów
+// ==========================================
 app.get("/api/products", async (req, res) => {
   try {
-    const pool = await sql.connect(dbConfig);
+    const pool = await sql.connect();
     const result = await pool.request().query("SELECT * FROM products");
     res.json(result.recordset);
   } catch (err) {
+    console.error("❌ Błąd pobierania produktów:", err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -121,7 +146,7 @@ app.get("/api/products", async (req, res) => {
 app.post("/api/products", async (req, res) => {
   const { name, sku, qty, date, location } = req.body;
   try {
-    const pool = await sql.connect(dbConfig);
+    const pool = await sql.connect();
     const result = await pool.request()
       .input("name", sql.NVarChar, name)
       .input("sku", sql.NVarChar, sku)
@@ -132,6 +157,7 @@ app.post("/api/products", async (req, res) => {
 
     res.json(result.recordset[0]);
   } catch (err) {
+    console.error("❌ Błąd dodawania produktu:", err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -139,7 +165,7 @@ app.post("/api/products", async (req, res) => {
 app.put("/api/products/:id", async (req, res) => {
   const { name, location } = req.body;
   try {
-    const pool = await sql.connect(dbConfig);
+    const pool = await sql.connect();
     await pool.request()
       .input("id", sql.Int, req.params.id)
       .input("name", sql.NVarChar, name)
@@ -148,6 +174,7 @@ app.put("/api/products/:id", async (req, res) => {
 
     res.json({ updated: true });
   } catch (err) {
+    console.error("❌ Błąd aktualizacji produktu:", err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -157,7 +184,7 @@ app.post("/api/receive", async (req, res) => {
   if (!id || !qty) return res.status(400).json({ error: "id i qty wymagane" });
 
   try {
-    const pool = await sql.connect(dbConfig);
+    const pool = await sql.connect();
     await pool.request()
       .input("id", sql.Int, id)
       .input("qty", sql.Int, qty)
@@ -169,6 +196,7 @@ app.post("/api/receive", async (req, res) => {
 
     res.json(result.recordset[0]);
   } catch (err) {
+    console.error("❌ Błąd przyjęcia produktu:", err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -178,7 +206,7 @@ app.post("/api/issue", async (req, res) => {
   if (!id || !qty) return res.status(400).json({ error: "id i qty wymagane" });
 
   try {
-    const pool = await sql.connect(dbConfig);
+    const pool = await sql.connect();
     const product = await pool.request()
       .input("id", sql.Int, id)
       .query("SELECT qty FROM products WHERE id = @id");
@@ -201,32 +229,34 @@ app.post("/api/issue", async (req, res) => {
 
     res.json(updated.recordset[0]);
   } catch (err) {
+    console.error("❌ Błąd wydania produktu:", err);
     res.status(500).json({ error: err.message });
   }
 });
 
 app.delete("/api/products/:id", async (req, res) => {
   try {
-    const pool = await sql.connect(dbConfig);
+    const pool = await sql.connect();
     await pool.request()
       .input("id", sql.Int, req.params.id)
       .query("DELETE FROM products WHERE id = @id");
 
     res.json({ deleted: true });
   } catch (err) {
+    console.error("❌ Błąd usuwania produktu:", err);
     res.status(500).json({ error: err.message });
   }
 });
 
-/* ===============================
-   🧭 Fallback dla SPA
-   =============================== */
+// ==========================================
+// 🧭 Fallback dla SPA
+// ==========================================
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-/* ===============================
-   🚀 Start serwera
-   =============================== */
+// ==========================================
+// 🚀 Start serwera
+// ==========================================
 const port = process.env.PORT || 3000;
 app.listen(port, () => console.log(`✅ Server działa na http://localhost:${port}`));
