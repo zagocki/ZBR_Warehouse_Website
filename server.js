@@ -7,6 +7,8 @@ const bcrypt = require("bcryptjs");
 const sql = require("mssql");
 
 const app = express();
+const morgan = require('morgan');
+app.use(morgan('dev'));
 
 // ==========================================
 // 🔧 Konfiguracja bazy danych Azure SQL
@@ -53,11 +55,17 @@ app.use(express.static("public"));
 // ==========================================
 app.post("/register", async (req, res) => {
   const { username, password } = req.body;
+
   if (!username || !password)
     return res.status(400).json({ error: "Wymagane pola: login i hasło" });
 
   try {
-    const pool = await sql.connect();
+    // Połączenie z bazą danych SQL Server
+    const pool = await sql.connect(dbConfig);
+    console.log(`🧑‍💻 Rejestracja użytkownika: ${username}`);
+
+
+    // Sprawdzenie, czy użytkownik istnieje
     const checkUser = await pool.request()
       .input("username", sql.NVarChar, username)
       .query("SELECT * FROM users WHERE username = @username");
@@ -65,18 +73,23 @@ app.post("/register", async (req, res) => {
     if (checkUser.recordset.length > 0)
       return res.status(400).json({ error: "Użytkownik już istnieje" });
 
+    // Hashowanie hasła
     const hash = await bcrypt.hash(password, 10);
+
+    // Dodanie nowego użytkownika
     await pool.request()
       .input("username", sql.NVarChar, username)
       .input("passwordHash", sql.NVarChar, hash)
       .query("INSERT INTO users (username, passwordHash) VALUES (@username, @passwordHash)");
 
     res.json({ success: true, message: "✅ Użytkownik został zarejestrowany" });
+
   } catch (err) {
     console.error("❌ Błąd rejestracji:", err);
     res.status(500).json({ error: "Błąd serwera podczas rejestracji" });
   }
 });
+
 
 // ==========================================
 // 🔑 Logowanie użytkownika
@@ -255,8 +268,25 @@ app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
+// --- 🔴 Niestandardowe logowanie błędów do konsoli (widoczne w Azure Log Stream) ---
+app.use((err, req, res, next) => {
+  console.error("❌ Błąd serwera:", err.message);
+  console.error(err.stack);
+  res.status(500).json({ error: "Wewnętrzny błąd serwera" });
+});
+
 // ==========================================
 // 🚀 Start serwera
 // ==========================================
 const port = process.env.PORT || 3000;
 app.listen(port, () => console.log(`✅ Server działa na http://localhost:${port}`));
+
+// ==========================================
+// 💥 Globalne przechwytywanie błędów
+// ==========================================
+process.on("unhandledRejection", (err) => {
+  console.error("❌ Nieobsłużony Promise Rejection:", err);
+});
+process.on("uncaughtException", (err) => {
+  console.error("💥 Nieobsłużony wyjątek:", err);
+});

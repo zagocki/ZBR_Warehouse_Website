@@ -103,6 +103,41 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   })();
 
+  // 🔹 Obsługa rejestracji
+const registerBtn = document.getElementById("registerBtn");
+
+registerBtn.addEventListener("click", async () => {
+  const username = document.getElementById("username").value;
+  const password = document.getElementById("password").value;
+
+  if (!username || !password) {
+    alert("❌ Wprowadź login i hasło przed rejestracją!");
+    return;
+  }
+
+  try {
+    const res = await fetch("/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      alert("✅ Użytkownik został zarejestrowany! Możesz się teraz zalogować.");
+      // czyść pola
+      document.getElementById("username").value = "";
+      document.getElementById("password").value = "";
+    } else {
+      alert("⚠️ " + (data.error || data.message));
+    }
+  } catch (err) {
+    alert("❌ Błąd podczas rejestracji. Sprawdź połączenie z serwerem.");
+    console.error("Błąd rejestracji:", err);
+  }
+});
+
   /* ==============================
      🔄 SEKCJE (toggle)
      ============================== */
