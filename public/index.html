@@ -44,6 +44,7 @@
       <button id="btnWydanie" class="submenu-btn">Wydanie towaru</button>
       <button id="btnRaporty" class="submenu-btn">Generowanie raportów</button>
       <button id="btnDokumenty" class="submenu-btn">Dokumenty</button>
+      <button id="btnUzytkownicy" class="submenu-btn">Zarządzanie użytkownikami</button>
     </nav>
   </div>
 
@@ -68,10 +69,10 @@
           <thead>
             <tr>
               <th>Produkt</th>
-              <th>SKU</th>
+              <th>Kategoria</th>
               <th>Ilość</th>
-              <th>Data</th>
-              <th>Dział</th>
+              <th>Termin Ważności</th>
+              <th>Produkt ID</th>
             </tr>
           </thead>
           <tbody id="productTableBody">
@@ -125,6 +126,53 @@
         <p>Podgląd dokumentu pojawi się tutaj</p>
       </div>
     </div>
+
+    <!-- Sekcja ZARZĄDZANIA UŻYTKOWNIKAMI -->
+    <div id="users" class="main-section hidden">
+      <div class="reports-bar">
+        <button id="btnRegisterUser" class="report-btn">Zarejestruj użytkownika</button>
+        <button id="btnDeleteUser" class="report-btn">Usuń użytkownika</button>
+      </div>
+
+      <div class="users-container">
+        <div id="registerUserPanel" class="report-placeholder hidden">
+          <h3>Rejestracja nowego użytkownika</h3>
+          <form id="registerUserForm">
+            <label>Login:
+              <input type="text" id="newUsername" required>
+            </label>
+            <label>Hasło:
+              <input type="password" id="newPassword" required>
+            </label>
+            <label>Rola:
+              <select id="newRole">
+                <option value="Magazynier">Magazynier</option>
+                <option value="Sprzedawca">Sprzedawca</option>
+                <option value="Kierownik">Kierownik</option>
+                <option value="Księgowy">Księgowy</option>
+                <option value="Administrator">Administrator</option>
+              </select>
+            </label>
+            <div class="modal-buttons">
+              <button type="submit" class="confirm">Zarejestruj</button>
+            </div>
+          </form>
+        </div>
+
+        <div id="deleteUserPanel" class="report-placeholder hidden">
+          <h3>Usuń istniejącego użytkownika</h3>
+          <form id="deleteUserForm">
+            <label>Login użytkownika do usunięcia:
+              <input type="text" id="deleteUsername" required>
+            </label>
+            <div class="modal-buttons">
+              <button type="submit" class="danger">Usuń użytkownika</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
   </main>
 
   <!-- Modal dodawania produktu -->
