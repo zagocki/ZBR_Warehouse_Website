@@ -47,7 +47,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // === Elementy DOM ===
   const loginForm = document.getElementById("loginForm");
   const logoutBtn = document.querySelector(".logout");
-  const registerBtn = document.getElementById("registerBtn");
+  const changePasswordBtn = document.getElementById("changePasswordBtn");
 
   /* ==============================
      🔐 LOGOWANIE I WYLOGOWANIE
@@ -140,43 +140,6 @@ document.addEventListener("DOMContentLoaded", () => {
       sessionStorage.removeItem("token");
     }
   })();
-
-  // 🔹 Obsługa szybkiej rejestracji (przycisk obok logowania) - domyślna rola Magazynier
-  registerBtn.addEventListener("click", async () => {
-    const username = document.getElementById("username").value.trim();
-    const password = document.getElementById("password").value;
-    if (!username || !password) {
-      alert("❌ Wprowadź login i hasło przed rejestracją!");
-      return;
-    }
-
-    // spróbuj pobrać wybraną rolę (jeśli istnieje panel admina), inaczej użyj Magazynier
-    const roleEl = document.getElementById("newRole");
-    const role = roleEl ? roleEl.value : "Magazynier";
-
-    try {
-      const headers = { "Content-Type": "application/json" };
-      const token = sessionStorage.getItem("token");
-      if (token) headers.Authorization = "Bearer " + token;
-
-      const res = await fetch("/register", {
-        method: "POST",
-        headers,
-        body: JSON.stringify({ username, password, role })
-      });
-      const data = await res.json();
-      if (res.ok && data.success) {
-        alert(data.message || "✅ Użytkownik został zarejestrowany!");
-        document.getElementById("username").value = "";
-        document.getElementById("password").value = "";
-      } else {
-        alert("⚠️ " + (data.error || data.message || "Błąd rejestracji"));
-      }
-    } catch (err) {
-      console.error("Błąd rejestracji:", err);
-      alert("❌ Wystąpił błąd podczas rejestracji");
-    }
-  });
 
   /* ==============================
      🔄 SEKCJE (toggle)
@@ -386,5 +349,51 @@ document.addEventListener("DOMContentLoaded", () => {
       wydanieForm.reset();
     };
     document.getElementById("confirmNo").onclick = () => confirmModal.classList.add("hidden");
+  });
+
+  /* ==============================
+     🔐 ZMIEŃ HASŁO (Modal + logika)
+     ============================== */
+  const changePasswordModal = document.getElementById("changePasswordModal");
+  const cpForm = document.getElementById("changePasswordForm");
+  const cpClose = document.getElementById("cpClose");
+
+  // Otwieranie i zamykanie modala
+  changePasswordBtn.addEventListener("click", () => changePasswordModal.classList.remove("hidden"));
+  cpClose.addEventListener("click", () => changePasswordModal.classList.add("hidden"));
+
+  // Obsługa formularza zmiany hasła
+  cpForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const username = document.getElementById("cpUsername").value.trim();
+    const oldPassword = document.getElementById("cpOldPassword").value;
+    const newPassword = document.getElementById("cpNewPassword").value;
+    const newPassword2 = document.getElementById("cpNewPassword2").value;
+
+    if (newPassword !== newPassword2) {
+      alert("❗ Nowe hasła nie są identyczne.");
+      return;
+    }
+
+    try {
+      const res = await fetch("/changePassword", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, oldPassword, newPassword })
+      });
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        alert("✅ Hasło zostało zmienione.");
+        changePasswordModal.classList.add("hidden");
+        cpForm.reset();
+      } else {
+        alert("⚠️ " + (data.error || data.message || "Nie udało się zmienić hasła."));
+      }
+    } catch (err) {
+      console.error("Błąd zmiany hasła:", err);
+      alert("❌ Błąd serwera przy zmianie hasła.");
+    }
   });
 });

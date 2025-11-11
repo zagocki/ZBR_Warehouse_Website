@@ -20,7 +20,8 @@
 
       <div class="login-buttons">
         <button type="submit">Zaloguj się</button>
-        <button type="button" id="registerBtn">Zarejestruj się</button>
+        <!-- Zmieniono: zamiast rejestracji mamy przycisk Zmień hasło -->
+        <button type="button" id="changePasswordBtn">Zmień hasło</button>
       </div>
     </form>
   </div>
@@ -212,6 +213,31 @@
         <button id="confirmYes">Tak</button>
         <button id="confirmNo">Nie</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Modal zmiany hasła -->
+  <div id="changePasswordModal" class="modal hidden">
+    <div class="modal-content">
+      <h3>Zmień hasło</h3>
+      <form id="changePasswordForm">
+        <label>Login:
+          <input type="text" id="cpUsername" required>
+        </label>
+        <label>Stare hasło:
+          <input type="password" id="cpOldPassword" required>
+        </label>
+        <label>Nowe hasło:
+          <input type="password" id="cpNewPassword" required>
+        </label>
+        <label>Powtórz nowe hasło:
+          <input type="password" id="cpNewPassword2" required>
+        </label>
+        <div class="modal-buttons">
+          <button type="submit">Zmień</button>
+          <button type="button" id="cpClose">Anuluj</button>
+        </div>
+      </form>
     </div>
   </div>
 

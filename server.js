@@ -31,40 +31,6 @@ async function connectDB() {
   try {
     await sql.connect(dbConfig);
     console.log("✅ Połączono z bazą danych Azure SQL");
-    // Upewnij się, że tabele Roles i users istnieją oraz zasiej podstawowe role
-    try {
-      const pool = await sql.connect(dbConfig);
-      const createTables = `
-        IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'Roles')
-        BEGIN
-          CREATE TABLE Roles (
-            RoleID INT IDENTITY(1,1) PRIMARY KEY,
-            Role_name NVARCHAR(100) NOT NULL UNIQUE
-          );
-        END
-
-        IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'users')
-        BEGIN
-          CREATE TABLE users (
-            id INT IDENTITY(1,1) PRIMARY KEY,
-            username NVARCHAR(255) NOT NULL UNIQUE,
-            passwordHash NVARCHAR(255) NOT NULL,
-            RoleID INT NULL
-          );
-        END
-
-        -- Seed default roles if table is empty
-        IF NOT EXISTS (SELECT * FROM Roles)
-        BEGIN
-          INSERT INTO Roles (Role_name) VALUES
-            (N'Magazynier'), (N'Sprzedawca'), (N'Kierownik'), (N'Księgowy'), (N'Administrator');
-        END
-      `;
-      await pool.request().query(createTables);
-      console.log('✅ Tabele Roles i users sprawdzone/utworzone, role zasiane');
-    } catch (tblErr) {
-      console.error('❌ Błąd tworzenia/seedowania tabel Roles/users:', tblErr);
-    }
   } catch (err) {
     console.error("❌ Błąd połączenia z bazą danych:", err);
   }
@@ -146,20 +112,19 @@ app.post("/login", async (req, res) => {
     const result = await pool.request()
       .input("username", sql.NVarChar, username)
       .query(`
-        SELECT u.*, r.Role_name
+        SELECT u.id, u.username, u.passwordHash, r.Role_name
         FROM users u
         LEFT JOIN Roles r ON u.RoleID = r.RoleID
         WHERE u.username = @username
       `);
 
     if (result.recordset.length === 0)
-      return res.status(401).json({ message: "Niepoprawny login lub hasło" });
+      return res.status(401).json({ error: "Niepoprawny login lub hasło" });
 
     const user = result.recordset[0];
     const valid = await bcrypt.compare(password, user.passwordHash);
-    if (!valid) return res.status(401).json({ message: "Niepoprawny login lub hasło" });
+    if (!valid) return res.status(401).json({ error: "Niepoprawny login lub hasło" });
 
-    // Token JWT z rolą
     const token = jwt.sign(
       { id: user.id, username: user.username, role: user.Role_name },
       JWT_SECRET,
@@ -172,6 +137,7 @@ app.post("/login", async (req, res) => {
     res.status(500).json({ error: "Błąd serwera podczas logowania" });
   }
 });
+
 
 // ==========================================
 // 🛡️ Middleware autoryzacji JWT
@@ -347,6 +313,42 @@ app.delete("/deleteUser/:username", async (req, res) => {
   } catch (err) {
     console.error("❌ Błąd przy usuwaniu użytkownika:", err);
     res.status(500).json({ error: "Błąd serwera przy usuwaniu użytkownika" });
+  }
+});
+
+// ==========================================
+// 🔒 Zmiana hasła użytkownika
+// ==========================================
+app.post("/changePassword", async (req, res) => {
+  const { username, oldPassword, newPassword } = req.body;
+
+  if (!username || !oldPassword || !newPassword)
+    return res.status(400).json({ error: "Wymagane pola: login, stare i nowe hasło" });
+
+  try {
+    const pool = await sql.connect(dbConfig);
+    const result = await pool.request()
+      .input("username", sql.NVarChar, username)
+      .query("SELECT * FROM users WHERE username = @username");
+
+    if (result.recordset.length === 0)
+      return res.status(404).json({ error: "Użytkownik nie istnieje" });
+
+    const user = result.recordset[0];
+    const valid = await bcrypt.compare(oldPassword, user.passwordHash);
+    if (!valid)
+      return res.status(401).json({ error: "Niepoprawne stare hasło" });
+
+    const newHash = await bcrypt.hash(newPassword, 10);
+    await pool.request()
+      .input("username", sql.NVarChar, username)
+      .input("passwordHash", sql.NVarChar, newHash)
+      .query("UPDATE users SET passwordHash = @passwordHash WHERE username = @username");
+
+    res.json({ success: true, message: "Hasło zostało zmienione" });
+  } catch (err) {
+    console.error("❌ Błąd przy zmianie hasła:", err);
+    res.status(500).json({ error: "Błąd serwera przy zmianie hasła" });
   }
 });
 
