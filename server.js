@@ -185,8 +185,9 @@ app.get("/profile", verifyToken, async (req, res) => {
 // ==========================================
 app.get("/api/products", async (req, res) => {
   try {
-    const pool = await sql.connect();
-    const result = await pool.request().query("SELECT * FROM products");
+    const pool = await sql.connect(dbConfig);
+    const result = await pool.request()
+      .query("SELECT ProductID, Product_name, CategoryID, Quantity, Expiry_date FROM products");
     res.json(result.recordset);
   } catch (err) {
     console.error("❌ Błąd pobierania produktów:", err);
@@ -195,16 +196,25 @@ app.get("/api/products", async (req, res) => {
 });
 
 app.post("/api/products", async (req, res) => {
-  const { name, sku, qty, date, location } = req.body;
+  const { Product_name, CategoryID, Quantity, Expiry_date } = req.body;
+
+  if (!Product_name || !CategoryID || !Quantity || !Expiry_date) {
+    return res.status(400).json({ error: "Wymagane wszystkie pola produktu" });
+  }
+
   try {
-    const pool = await sql.connect();
+    const pool = await sql.connect(dbConfig);
+
     const result = await pool.request()
-      .input("name", sql.NVarChar, name)
-      .input("sku", sql.NVarChar, sku)
-      .input("qty", sql.Int, qty)
-      .input("date", sql.NVarChar, date)
-      .input("location", sql.NVarChar, location)
-      .query("INSERT INTO products (name, sku, qty, date, location) OUTPUT INSERTED.* VALUES (@name, @sku, @qty, @date, @location)");
+      .input("Product_name", sql.NVarChar, Product_name)
+      .input("CategoryID", sql.Int, CategoryID)
+      .input("Quantity", sql.Int, Quantity)
+      .input("Expiry_date", sql.Date, Expiry_date)
+      .query(`
+        INSERT INTO products (Product_name, CategoryID, Quantity, Expiry_date)
+        OUTPUT INSERTED.ProductID, INSERTED.Product_name, INSERTED.CategoryID, INSERTED.Quantity, INSERTED.Expiry_date
+        VALUES (@Product_name, @CategoryID, @Quantity, @Expiry_date)
+      `);
 
     res.json(result.recordset[0]);
   } catch (err) {
@@ -212,6 +222,7 @@ app.post("/api/products", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 app.put("/api/products/:id", async (req, res) => {
   const { name, location } = req.body;

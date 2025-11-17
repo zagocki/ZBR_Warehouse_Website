@@ -181,20 +181,17 @@
     <div class="modal-content">
       <h2>Dodaj nowy produkt</h2>
       <form id="addProductForm">
-        <label>Produkt
-          <input type="text" name="produkt" required>
+        <label>Nazwa produktu:
+          <input type="text" id="productName" required>
         </label>
-        <label>SKU
-          <input type="text" name="sku" required>
+        <label>Kategoria (CategoryID)
+          <input type="number" id="productCategory" min="1" required>
         </label>
-        <label>Ilość
-          <input type="number" name="ilosc" required>
+        <label>Ilość (Quantity)
+          <input type="number" id="productQty" min="1" required>
         </label>
-        <label>Data
-          <input type="date" name="data" required>
-        </label>
-        <label>Dział
-          <input type="text" name="dzial" required>
+        <label>Termin ważności (Expiry_date)
+          <input type="date" id="productDate" required> 
         </label>
         <div class="modal-buttons">
           <button type="submit">Dodaj</button>

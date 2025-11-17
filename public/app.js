@@ -303,23 +303,23 @@ document.addEventListener("DOMContentLoaded", () => {
   const addProductForm = document.getElementById("addProductForm");
   addProductForm.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const { produkt, sku, ilosc, data, dzial } = addProductForm;
-    try {
-      await api("/products", "POST", {
-        name: produkt.value,
-        sku: sku.value,
-        qty: parseInt(ilosc.value),
-        date: data.value,
-        location: dzial.value,
-      });
-      await refresh();
-      addProductForm.reset();
-      modal.classList.add("hidden");
-    } catch (err) {
-      console.error("Błąd dodawania produktu:", err);
-      alert("❌ Nie udało się dodać produktu.");
-    }
-  });
+
+    const Product_name = document.getElementById("productName").value.trim();
+    const CategoryID = parseInt(document.getElementById("productCategory").value);
+    const Quantity = parseInt(document.getElementById("productQty").value);
+    const Expiry_date = document.getElementById("productDate").value;
+
+  try {
+    await api("/products", "POST", { Product_name, CategoryID, Quantity, Expiry_date });
+    await refresh();
+    addProductForm.reset();
+    document.getElementById("addProductModal").classList.add("hidden");
+  } catch (err) {
+    console.error("Błąd dodawania produktu:", err);
+    alert("❌ Nie udało się dodać produktu.");
+  }
+});
+
 
   /* ==============================
      🔍 WYSZUKIWANIE PRODUKTÓW
