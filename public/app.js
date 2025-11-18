@@ -27,21 +27,55 @@ async function refresh(q = "") {
     const tbody = document.getElementById("productTableBody");
     tbody.innerHTML = "";
 
-    rows.forEach((r) => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${r.Product_name || r.name || ""}</td>
-        <td>${r.CategoryID || ""}</td>
-        <td>${r.Quantity || r.qty || 0}</td>
-        <td>${r.Expiry_date ? new Date(r.Expiry_date).toLocaleDateString() : (r.date ? new Date(r.date).toLocaleDateString() : "")}</td>
-        <td>${r.ProductID || r.id || ""}</td>
-      `;
-      tbody.appendChild(tr);
-    });
+rows.forEach((r) => {
+  const tr = document.createElement("tr");
+
+tr.innerHTML = `
+  <td>${r.Product_name || ""}</td>
+  <td>${r.CategoryID || ""}</td>
+  <td>${r.Quantity || 0}</td>
+  <td>${r.Expiry_date ? new Date(r.Expiry_date).toLocaleDateString() : ""}</td>
+  <td>${r.ProductID || ""}</td>
+  <td class="actions">
+    <button class="dots-btn">⋮</button>
+    <div class="delete-prompt hidden">
+      <button class="delete-confirm">Usuń</button>
+      <button class="delete-cancel">Anuluj</button>
+    </div>
+  </td>
+`;
+
+
+  tbody.appendChild(tr);
+  // 🔹ikona 3 kropek do usuwania produktów
+  const dotsBtn = tr.querySelector(".dots-btn");
+  const deletePrompt = tr.querySelector(".delete-prompt");
+  const deleteConfirm = tr.querySelector(".delete-confirm");
+  const deleteCancel = tr.querySelector(".delete-cancel");
+
+  // 🔹 Pokazuj tylko jeden prompt naraz
+  dotsBtn.addEventListener("click", () => {
+    document.querySelectorAll(".delete-prompt").forEach(p => p.classList.add("hidden")); // zamknij wszystkie
+    deletePrompt.classList.toggle("hidden"); // otwórz/ukryj aktualny
+  });
+
+  deleteCancel.addEventListener("click", () => deletePrompt.classList.add("hidden"));
+
+  deleteConfirm.addEventListener("click", async () => {
+    try {
+      await api("/products/" + r.ProductID, "DELETE");
+      await refresh();
+    } catch (err) {
+      console.error("Błąd usuwania produktu:", err);
+      alert("❌ Nie udało się usunąć produktu.");
+    }
+  });
+});
   } catch (err) {
-    console.error("❌ Błąd podczas odświeżania produktów:", err);
+    console.error("Błąd odświeżania produktów:", err);
   }
 }
+
 
 document.addEventListener("DOMContentLoaded", () => {
   // === Elementy DOM ===

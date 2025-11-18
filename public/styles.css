@@ -275,6 +275,67 @@ body {
   opacity: 0.9;
 }
 
+/* --- Przyciski akcji w tabeli produktów --- */
+table .actions {
+  position: relative;
+  width: 40px; /* szerokość kolumny akcji */
+}
+
+/* Ikonka 3 pionowe kropki */
+table .dots-btn {
+  display: none; /* domyślnie ukryta */
+  background: none;
+  border: none;
+  color: #ffffff; /* białe kropki */
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  transition: color 0.2s;
+}
+
+/* Pokaż ikonę tylko przy hover na wierszu */
+table tbody tr:hover .dots-btn {
+  display: inline-block;
+}
+
+/* Prompt usuwania */
+.delete-prompt {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background-color: #3a3a3c;
+  color: #ffffff;
+  border-radius: 5px;
+  padding: 5px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  z-index: 10;
+}
+
+/* Ukryte na start */
+.delete-prompt.hidden {
+  display: none;
+}
+
+/* Przyciski w prompt */
+.delete-prompt button {
+  background: none;
+  border: none;
+  color: #ffffff;
+  cursor: pointer;
+  text-align: left;
+  padding: 3px 8px;
+  border-radius: 3px;
+  transition: background 0.2s;
+}
+
+/* Hover na przyciskach */
+.delete-prompt button:hover {
+  background-color: #575757;
+}
+
 /* =========================
    Modal komunikatów systemowych
    ========================= */

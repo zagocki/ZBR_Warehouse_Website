@@ -296,14 +296,16 @@ app.post("/api/issue", async (req, res) => {
   }
 });
 
+// DELETE product by ProductID
 app.delete("/api/products/:id", async (req, res) => {
+  const productId = req.params.id; // to jest ProductID w tabeli
   try {
-    const pool = await sql.connect();
+    const pool = await sql.connect(dbConfig);
     await pool.request()
-      .input("id", sql.Int, req.params.id)
-      .query("DELETE FROM products WHERE id = @id");
+      .input("ProductID", sql.Int, productId)
+      .query("DELETE FROM products WHERE ProductID = @ProductID");
 
-    res.json({ deleted: true });
+    res.json({ deleted: true, message: `Produkt o ID ${productId} został usunięty.` });
   } catch (err) {
     console.error("❌ Błąd usuwania produktu:", err);
     res.status(500).json({ error: err.message });
