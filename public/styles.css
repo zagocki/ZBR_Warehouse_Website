@@ -411,7 +411,7 @@ table tbody tr:hover .dots-btn {
 }
 
 /* =========================
-   Sekcja raportów i dokumentów
+   Sekcja raportów i dokumentów --- bedzie do usuniecia
    ========================= */
 .reports-bar {
   background-color: #242426;
@@ -446,6 +446,73 @@ table tbody tr:hover .dots-btn {
   align-items: center;
   color: black;
 }
+
+/* ---- Dokumenty (modal) ---- */
+/* ---- styles for document modal and printable sheet ---- */
+.doc-modal { width: 100%; max-width: 1100px; background: #161616; border-radius: 10px; padding: 16px; }
+.doc-flex { display:flex; gap:18px; align-items:flex-start; }
+.doc-form { width: 36%; max-height:72vh; overflow:auto; padding-right:8px; }
+.doc-preview-wrapper { width: 64%; display:flex; justify-content:center; align-items:flex-start; }
+.doc-preview { width: 100%; display:flex; justify-content:center; }
+.doc-sheet {
+  width: 210mm; /* Dokładna szerokość A4 */
+  max-width: 210mm;
+  min-height: 297mm; /* Wysokość A4 */
+  background: white;
+  color: #111;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.6);
+  border-radius: 6px;
+  padding: 15mm; /* Marginesy wewnętrzne */
+  box-sizing: border-box;
+  margin: 12px auto;
+  overflow: visible;
+  font-family: "Arial", sans-serif;
+  font-size: 12px;
+  page-break-after: avoid;
+  page-break-inside: avoid;
+}
+
+.doc-sheet .doc-header { 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+  margin-bottom: 10px; 
+}
+
+.doc-title { 
+  font-size: 18px; 
+  font-weight: 700; 
+}
+
+.doc-main { 
+  margin-top: 8px; 
+  color: #111;
+  width: 100%;
+  overflow: visible;
+}
+
+/* Tabela w dokumencie */
+.doc-main table {
+  width: 100%;
+  max-width: 100%;
+  table-layout: auto;
+}
+
+.doc-footer { 
+  margin-top: 20px; 
+  font-size: 11px; 
+  color: #666; 
+  text-align: center; 
+  page-break-inside: avoid;
+}
+
+/* small button look */
+.small-btn {
+  background:#2c2c2c;color:#fff;padding:8px 10px;border-radius:6px;border:1px solid #15535f;cursor:pointer;
+}
+.small-btn.primary { background:#0F7294;border-color:#0b5566; }
+.small-btn:hover { opacity:0.95; }
+
 
 /* =========================
    Ekran logowania

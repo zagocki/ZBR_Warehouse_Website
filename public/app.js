@@ -76,6 +76,279 @@ tr.innerHTML = `
   }
 }
 
+/* =========================
+   DOKUMENTY: definicje pól
+   ========================= */
+// szablony pól dla każdego typu dokumentu
+const DOC_TEMPLATES = {
+  PZ: {
+    title: "PZ - Przyjęcie zewnętrzne",
+    fields: [
+      { id: "doc_number", label: "Numer dokumentu", type: "text" },
+      { id: "doc_date", label: "Data", type: "date" },
+      { id: "supplier", label: "Dostawca / Kontrahent", type: "text" },
+      { id: "product_table", label: "Pozycje (produkt/ilość/j.m.)", type: "table" }
+    ]
+  },
+  WZ: {
+    title: "WZ - Wydanie zewnętrzne",
+    fields: [
+      { id: "doc_number", label: "Numer dokumentu", type: "text" },
+      { id: "doc_date", label: "Data", type: "date" },
+      { id: "recipient", label: "Odbiorca", type: "text" },
+      { id: "product_table", label: "Pozycje (produkt/ilość/j.m.)", type: "table" }
+    ]
+  },
+  MM: {
+    title: "MM - Przesunięcie międzymagazynowe",
+    fields: [
+      { id: "doc_number", label: "Numer dokumentu", type: "text" },
+      { id: "doc_date", label: "Data", type: "date" },
+      { id: "from_store", label: "Z magazynu", type: "text" },
+      { id: "to_store", label: "Do magazynu", type: "text" },
+      { id: "product_table", label: "Pozycje (produkt/ilość/j.m.)", type: "table" }
+    ]
+  },
+  FV: {
+    title: "Faktura VAT",
+    fields: [
+      { id: "invoice_number", label: "Numer faktury", type: "text" },
+      { id: "invoice_date", label: "Data", type: "date" },
+      { id: "buyer", label: "Nabywca", type: "text" },
+      { id: "seller", label: "Sprzedawca", type: "text" },
+      { id: "product_table", label: "Pozycje (produkt/ilość,cena netto)","type":"table_invoice" }
+    ]
+  }
+};
+
+// pomocnicze selektory
+const docModal = document.getElementById("docModal");
+const docFields = document.getElementById("docFields");
+const docPreview = document.getElementById("docPreview");
+const docMainContent = document.getElementById("docMainContent");
+const docSheet = document.getElementById("docSheet");
+
+let currentDocType = null;
+
+// powiąż przyciski typów dokumentów
+document.querySelectorAll(".doc-type").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const id = btn.id.replace("doc", ""); // docPZ -> PZ
+    openDocModal(id);
+  });
+});
+
+// open modal + render form
+function openDocModal(type) {
+  currentDocType = type;
+  const tpl = DOC_TEMPLATES[type];
+  if (!tpl) return alert("Nieznany typ dokumentu");
+
+  // wstaw pola
+  docFields.innerHTML = `<h4 style="color:#fff;margin:6px 0 10px 0;">Tworzysz: ${tpl.title}</h4>`;
+  tpl.fields.forEach(f => {
+    if (f.type === "text" || f.type === "date") {
+      docFields.innerHTML += `
+        <label style="display:block;margin-bottom:8px;color:#ddd;">
+          ${f.label}:
+          <input id="${f.id}" name="${f.id}" ${f.type === 'date' ? 'type="date"' : 'type="text"'} style="width:100%;padding:6px;border-radius:6px;border:1px solid #444;margin-top:6px;background:#111;color:#fff;">
+        </label>
+      `;
+    } else if (f.type === "table" || f.type === "table_invoice") {
+      docFields.innerHTML += `
+        <div style="margin:8px 0;color:#ddd;">
+          <label>${f.label}:</label>
+          <div id="${f.id}" class="doc-table-editor" style="margin-top:6px;">
+            <table style="width:100%;">
+              <thead><tr>
+                <th style="text-align:left">Nazwa</th>
+                <th style="width:90px">Ilość</th>
+                <th style="width:90px">${f.type==='table_invoice'?'Cena':'J.m.'}</th>
+                <th style="width:60px"></th>
+              </tr></thead>
+              <tbody></tbody>
+            </table>
+            <button data-table="${f.id}" class="add-row small-btn" type="button" style="margin-top:6px;">Dodaj pozycję</button>
+          </div>
+        </div>
+      `;
+    }
+  });
+
+  // pokaż modal
+  docModal.classList.remove("hidden");
+  renderPreviewBlank();
+  // hookup add-row buttons
+  setTimeout(()=>{ // after DOM insertion
+    document.querySelectorAll(".add-row").forEach(b=>{
+      b.addEventListener("click", () => addRowToTable(b.dataset.table));
+    });
+  },50);
+}
+
+// close modal
+document.getElementById("closeDocModal").addEventListener("click", () => {
+  docModal.classList.add("hidden");
+  docFields.innerHTML = "";
+  docMainContent.innerHTML = "";
+});
+
+// dodawanie wiersza do edytora tabeli
+function addRowToTable(tableId) {
+  const container = document.getElementById(tableId);
+  if (!container) return;
+  const tbody = container.querySelector("tbody");
+  const tr = document.createElement("tr");
+  tr.innerHTML = `
+    <td><input class="row-name" style="width:100%;padding:4px;background:#111;color:#fff;border:1px solid #333;"></td>
+    <td><input class="row-qty" style="width:100%;padding:4px;background:#111;color:#fff;border:1px solid #333;"></td>
+    <td><input class="row-unit" style="width:100%;padding:4px;background:#111;color:#fff;border:1px solid #333;"></td>
+    <td><button class="remove-row small-btn" type="button">✕</button></td>
+  `;
+  tbody.appendChild(tr);
+  tr.querySelector(".remove-row").addEventListener("click", ()=> tr.remove());
+}
+
+// render pustego podglądu
+function renderPreviewBlank() {
+  docMainContent.innerHTML = `<div style="color:#888">Podgląd dokumentu pojawi się po kliknięciu <b>Podgląd</b>.</div>`;
+}
+
+// tworzenie HTML podglądu na podstawie formularza
+function renderPreviewFromForm() {
+  if (!currentDocType) return;
+  const tpl = DOC_TEMPLATES[currentDocType];
+  let html = `<div style="padding:14px;">`;
+  html += `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+            <div style="font-weight:700;font-size:18px;">${tpl.title}</div>
+            <div style="text-align:right;font-size:11px;">ZBR Warehouse<br><small>Wygenerowano: ${new Date().toLocaleString()}</small></div>
+          </div>`;
+
+  // podstawowe pola (text/date)
+  tpl.fields.forEach(f=>{
+    if (f.type === 'text' || f.type === 'date') {
+      const el = document.getElementById(f.id);
+      const val = el ? (el.value || "") : "";
+      html += `<div style="margin-bottom:6px;"><strong>${f.label}:</strong> ${escapeHtml(val)}</div>`;
+    }
+  });
+
+  // tabele pozycji
+  const tableField = tpl.fields.find(x => x.type === 'table' || x.type === 'table_invoice');
+  if (tableField) {
+    const tableContainer = document.getElementById(tableField.id);
+    const rows = tableContainer ? Array.from(tableContainer.querySelectorAll("tbody tr")) : [];
+    html += `<table style="width:100%;border-collapse:collapse;margin-top:8px;">
+              <thead>
+                <tr style="background:#f5f5f5;color:#000;">
+                  <th style="padding:6px;border:1px solid #ddd;text-align:left">Nazwa</th>
+                  <th style="padding:6px;border:1px solid #ddd;width:80px">Ilość</th>
+                  <th style="padding:6px;border:1px solid #ddd;width:120px">${tableField.type==='table_invoice'?'Cena netto':'J.m.'}</th>
+                </tr>
+              </thead>
+              <tbody>`;
+    if (rows.length === 0) {
+      html += `<tr><td colspan="3" style="padding:8px;border:1px solid #ddd;text-align:center;color:#888">Brak pozycji</td></tr>`;
+    } else {
+      rows.forEach(r=>{
+        const name = r.querySelector(".row-name")?.value || "";
+        const qty = r.querySelector(".row-qty")?.value || "";
+        const unit = r.querySelector(".row-unit")?.value || "";
+        html += `<tr>
+                  <td style="padding:6px;border:1px solid #ddd">${escapeHtml(name)}</td>
+                  <td style="padding:6px;border:1px solid #ddd;text-align:right">${escapeHtml(qty)}</td>
+                  <td style="padding:6px;border:1px solid #ddd;text-align:right">${escapeHtml(unit)}</td>
+                 </tr>`;
+      });
+    }
+    html += `</tbody></table>`;
+  }
+
+  html += `</div>`;
+  docMainContent.innerHTML = html;
+}
+
+// escape helper
+function escapeHtml(s){ if(!s) return ""; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// PODGLĄD i GENERUJ PDF
+document.getElementById("previewBtn").addEventListener("click", () => {
+  renderPreviewFromForm();
+});
+
+document.getElementById("generatePdfBtn").addEventListener("click", async () => {
+  // Najpierw wygeneruj podgląd
+  renderPreviewFromForm();
+
+  // Sprawdź czy html2pdf jest dostępne
+  if (typeof html2pdf === 'undefined') {
+    alert('❌ Biblioteka html2pdf nie została załadowana. Odśwież stronę i spróbuj ponownie.');
+    return;
+  }
+
+  try {
+    // Pobierz całą zawartość arkusza dokumentu
+    const element = document.getElementById("docSheet");
+    
+    if (!element) {
+      alert('❌ Nie można znaleźć elementu dokumentu.');
+      return;
+    }
+
+    // Opcje dla html2pdf - POPRAWIONE
+    const opt = {
+      margin: [10, 10, 10, 10], // góra, prawo, dół, lewo
+      filename: `${currentDocType || 'document'}_${new Date().toISOString().slice(0,10)}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { 
+        scale: 2, 
+        useCORS: true,
+        letterRendering: true,
+        logging: false,
+        width: 794,  // szerokość A4 w pikselach
+        windowWidth: 794
+      },
+      jsPDF: { 
+        unit: 'mm', 
+        format: 'a4', 
+        orientation: 'portrait',
+        compress: true
+      },
+      pagebreak: { mode: 'avoid-all' }  // unikaj podziału na strony
+    };
+
+    // Generuj i pobierz PDF
+    await html2pdf().set(opt).from(element).save();
+    
+    console.log('✅ PDF wygenerowany pomyślnie');
+  } catch (error) {
+    console.error('❌ Błąd generowania PDF:', error);
+    alert('❌ Wystąpił błąd podczas generowania PDF: ' + error.message);
+  }
+});
+
+// opcjonalnie: save draft (tu demo - localStorage)
+document.getElementById("saveDraftBtn").addEventListener("click", () => {
+  try {
+    const tpl = DOC_TEMPLATES[currentDocType];
+    const data = {};
+    tpl.fields.forEach(f=>{
+      if (f.type === 'text' || f.type === 'date') data[f.id] = document.getElementById(f.id)?.value || "";
+      if (f.type.startsWith('table')) {
+        const rows = Array.from(document.querySelectorAll(`#${f.id} tbody tr`)).map(r => ({
+          name: r.querySelector(".row-name")?.value || "",
+          qty: r.querySelector(".row-qty")?.value || "",
+          unit: r.querySelector(".row-unit")?.value || ""
+        }));
+        data[f.id] = rows;
+      }
+    });
+    localStorage.setItem(`draft_${currentDocType}`, JSON.stringify(data));
+    alert("Zapisano draft lokalnie.");
+  } catch (e) {
+    console.error(e); alert("Błąd zapisu draftu.");
+  }
+});
 
 document.addEventListener("DOMContentLoaded", () => {
   // === Elementy DOM ===

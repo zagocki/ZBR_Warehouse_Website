@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>ZBR Warehouse</title>
   <link rel="stylesheet" href="styles.css">
+  <!-- 🔹 Dodanie biblioteki html2pdf.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
 
@@ -116,17 +118,61 @@
       </div>
     </div>
 
-    <!-- Sekcja DOKUMENTÓW -->
+    <!-- ======= Sekcja DOKUMENTÓW ======= -->
     <div id="documents" class="main-section hidden">
       <div class="reports-bar">
-        <button class="report-btn">Dokument 1</button>
-        <button class="report-btn">Dokument 2</button>
-        <button class="report-btn">Dokument 3</button>
+        <button id="docPZ" class="doc-type btn-type">PZ</button>
+        <button id="docWZ" class="doc-type btn-type">WZ</button>
+        <button id="docMM" class="doc-type btn-type">MM</button>
+        <button id="docFV" class="doc-type btn-type">Faktura</button>
       </div>
-      <div class="report-placeholder">
-        <p>Podgląd dokumentu pojawi się tutaj</p>
+
+      <div style="padding:24px; color:#ccc;">
+        <p>Wybierz typ dokumentu, wypełnij dane w formularzu, zobacz podgląd i pobierz PDF.</p>
       </div>
-    </div>
+
+      <!-- Modal formularza / podglądu -->
+      <div id="docModal" class="modal hidden">
+        <div class="modal-content doc-modal">
+          <button id="closeDocModal" style="position:absolute;right:12px;top:8px;background:none;border:none;color:#fff;font-size:20px;cursor:pointer">✕</button>
+          <h3 style="color:#fff;margin:0 0 10px 0;">Generowanie dokumentu</h3>
+
+          <div class="doc-flex">
+            <!-- left: formularz -->
+            <div class="doc-form">
+              <form id="docForm">
+                <!-- dynamiczne pola tu wstawiane przez JS -->
+                <div id="docFields"></div>
+
+                <div style="margin-top:10px; display:flex; gap:8px;">
+                  <button id="previewBtn" type="button" class="small-btn">Podgląd</button>
+                  <button id="generatePdfBtn" type="button" class="small-btn primary">Generuj PDF</button>
+                  <button id="saveDraftBtn" type="button" class="small-btn">Zapisz (opcjonalnie)</button>
+                </div>
+              </form>
+            </div>
+
+            <!-- right: biały arkusz (podgląd dokumentu) -->
+            <div class="doc-preview-wrapper">
+              <div id="docPreview" class="doc-preview">
+                <!-- tu JS wstrzyknie gotowy HTML dokumentu -->
+                <div class="doc-sheet" id="docSheet">
+                  <!-- domyślnie pusta biała kartka -->
+                  <div class="doc-header">
+                    <img src="images/ZBR_logo.png" alt="logo" style="height:28px;">
+                    <div class="doc-title">Dokument</div>
+                  </div>
+                  <div id="docMainContent" class="doc-main">
+                    <!-- treść generowana dynamicznie -->
+                  </div>
+                  <div class="doc-footer">ZBR Warehouse</div>
+                </div>
+              </div>
+            </div>
+          </div> <!-- doc-flex -->
+        </div> <!-- modal-content -->
+      </div> <!-- modal -->
+    </div> <!-- documents -->
 
     <!-- Sekcja ZARZĄDZANIA UŻYTKOWNIKAMI -->
     <div id="users" class="main-section hidden">
