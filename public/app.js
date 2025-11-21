@@ -125,7 +125,6 @@ const DOC_TEMPLATES = {
 const docModal = document.getElementById("docModal");
 const docFields = document.getElementById("docFields");
 const docPreview = document.getElementById("docPreview");
-const docMainContent = document.getElementById("docMainContent");
 const docSheet = document.getElementById("docSheet");
 
 let currentDocType = null;
@@ -190,7 +189,6 @@ function openDocModal(type) {
 document.getElementById("closeDocModal").addEventListener("click", () => {
   docModal.classList.add("hidden");
   docFields.innerHTML = "";
-  docMainContent.innerHTML = "";
 });
 
 // dodawanie wiersza do edytora tabeli
@@ -209,63 +207,104 @@ function addRowToTable(tableId) {
   tr.querySelector(".remove-row").addEventListener("click", ()=> tr.remove());
 }
 
-// render pustego podglądu
 function renderPreviewBlank() {
-  docMainContent.innerHTML = `<div style="color:#888">Podgląd dokumentu pojawi się po kliknięciu <b>Podgląd</b>.</div>`;
+  docSheet.innerHTML = `
+    <div class="doc-header">
+      <img src="images/ZBR_logo.png" alt="logo" style="height:28px;">
+      <div class="doc-title">Podgląd dokumentu</div>
+    </div>
+
+    <div class="doc-main" style="color:#888;padding-top:20px;">
+      Kliknij <b>Podgląd</b>, aby zobaczyć wypełniony dokument.
+    </div>
+
+    <div class="doc-footer">ZBR Warehouse</div>
+  `;
 }
 
 // tworzenie HTML podglądu na podstawie formularza
 function renderPreviewFromForm() {
   if (!currentDocType) return;
-  const tpl = DOC_TEMPLATES[currentDocType];
-  let html = `<div style="padding:14px;">`;
-  html += `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-            <div style="font-weight:700;font-size:18px;">${tpl.title}</div>
-            <div style="text-align:right;font-size:11px;">ZBR Warehouse<br><small>Wygenerowano: ${new Date().toLocaleString()}</small></div>
-          </div>`;
 
-  // podstawowe pola (text/date)
-  tpl.fields.forEach(f=>{
-    if (f.type === 'text' || f.type === 'date') {
-      const el = document.getElementById(f.id);
-      const val = el ? (el.value || "") : "";
-      html += `<div style="margin-bottom:6px;"><strong>${f.label}:</strong> ${escapeHtml(val)}</div>`;
+  const tpl = DOC_TEMPLATES[currentDocType];
+
+  // --- ZBIERANIE DANYCH ---
+  const data = {};
+  tpl.fields.forEach(f => {
+    if (f.type === "text" || f.type === "date") {
+      data[f.id] = document.getElementById(f.id)?.value || "";
+    } else if (f.type === "table" || f.type === "table_invoice") {
+      const container = document.getElementById(f.id);
+      const rows = Array.from(container.querySelectorAll("tbody tr")).map(r => ({
+        name: r.querySelector(".row-name")?.value || "",
+        qty: r.querySelector(".row-qty")?.value || "",
+        unit: r.querySelector(".row-unit")?.value || ""
+      }));
+      data[f.id] = rows;
     }
   });
 
-  // tabele pozycji
-  const tableField = tpl.fields.find(x => x.type === 'table' || x.type === 'table_invoice');
+  // --- BUDOWANIE TABELI ---
+  const tableField = tpl.fields.find(x => x.type === "table" || x.type === "table_invoice");
+  let tableHtml = "";
+
   if (tableField) {
-    const tableContainer = document.getElementById(tableField.id);
-    const rows = tableContainer ? Array.from(tableContainer.querySelectorAll("tbody tr")) : [];
-    html += `<table style="width:100%;border-collapse:collapse;margin-top:8px;">
-              <thead>
-                <tr style="background:#f5f5f5;color:#000;">
-                  <th style="padding:6px;border:1px solid #ddd;text-align:left">Nazwa</th>
-                  <th style="padding:6px;border:1px solid #ddd;width:80px">Ilość</th>
-                  <th style="padding:6px;border:1px solid #ddd;width:120px">${tableField.type==='table_invoice'?'Cena netto':'J.m.'}</th>
-                </tr>
-              </thead>
-              <tbody>`;
-    if (rows.length === 0) {
-      html += `<tr><td colspan="3" style="padding:8px;border:1px solid #ddd;text-align:center;color:#888">Brak pozycji</td></tr>`;
+    tableHtml += `
+      <table style="width:100%;border-collapse:collapse;margin-top:8px;">
+        <thead>
+          <tr style="background:#f5f5f5;color:#000;">
+            <th style="padding:6px;border:1px solid #ddd;text-align:left">Nazwa</th>
+            <th style="padding:6px;border:1px solid #ddd;width:80px">Ilość</th>
+            <th style="padding:6px;border:1px solid #ddd;width:120px">${tableField.type === "table_invoice" ? "Cena netto" : "J.m."}</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    if (data[tableField.id].length === 0) {
+      tableHtml += `
+        <tr><td colspan="3" style="padding:8px;border:1px solid #ddd;text-align:center;color:#888">
+          Brak pozycji
+        </td></tr>`;
     } else {
-      rows.forEach(r=>{
-        const name = r.querySelector(".row-name")?.value || "";
-        const qty = r.querySelector(".row-qty")?.value || "";
-        const unit = r.querySelector(".row-unit")?.value || "";
-        html += `<tr>
-                  <td style="padding:6px;border:1px solid #ddd">${escapeHtml(name)}</td>
-                  <td style="padding:6px;border:1px solid #ddd;text-align:right">${escapeHtml(qty)}</td>
-                  <td style="padding:6px;border:1px solid #ddd;text-align:right">${escapeHtml(unit)}</td>
-                 </tr>`;
+      data[tableField.id].forEach(row => {
+        tableHtml += `
+          <tr>
+            <td style="padding:6px;border:1px solid #ddd">${escapeHtml(row.name)}</td>
+            <td style="padding:6px;border:1px solid #ddd;text-align:right">${escapeHtml(row.qty)}</td>
+            <td style="padding:6px;border:1px solid #ddd;text-align:right">${escapeHtml(row.unit)}</td>
+          </tr>
+        `;
       });
     }
-    html += `</tbody></table>`;
+
+    tableHtml += `</tbody></table>`;
   }
 
-  html += `</div>`;
-  docMainContent.innerHTML = html;
+  // --- BUDOWANIE CAŁEGO ARKUSZA A4 ---
+  docSheet.innerHTML = `
+    <div class="doc-header">
+      <img src="images/ZBR_logo.png" alt="logo" style="height:28px;">
+      <div class="doc-title">${tpl.title}</div>
+    </div>
+
+    <div style="margin-bottom:10px;font-size:11px;">
+      <strong>Wygenerowano:</strong> ${new Date().toLocaleString()}
+    </div>
+
+    <div class="doc-main">
+      ${tpl.fields
+        .filter(f => f.type === "text" || f.type === "date")
+        .map(f =>
+          `<div style="margin-bottom:6px;"><strong>${f.label}:</strong> ${escapeHtml(data[f.id])}</div>`
+        ).join("")
+      }
+
+      ${tableHtml}
+    </div>
+
+    <div class="doc-footer">ZBR Warehouse – dokument wygenerowany automatycznie</div>
+  `;
 }
 
 // escape helper
@@ -277,54 +316,19 @@ document.getElementById("previewBtn").addEventListener("click", () => {
 });
 
 document.getElementById("generatePdfBtn").addEventListener("click", async () => {
-  // Najpierw wygeneruj podgląd
-  renderPreviewFromForm();
+  renderPreviewFromForm(); // generujemy aktualny dokument
 
-  // Sprawdź czy html2pdf jest dostępne
-  if (typeof html2pdf === 'undefined') {
-    alert('❌ Biblioteka html2pdf nie została załadowana. Odśwież stronę i spróbuj ponownie.');
-    return;
-  }
+  const element = document.getElementById("docSheet"); // <-- TERAZ TO DZIAŁA
 
-  try {
-    // Pobierz całą zawartość arkusza dokumentu
-    const element = document.getElementById("docSheet");
-    
-    if (!element) {
-      alert('❌ Nie można znaleźć elementu dokumentu.');
-      return;
-    }
+  const opt = {
+    margin: 0,
+    filename: `${currentDocType}_${new Date().toISOString().slice(0,10)}.pdf`,
+    image: { type: "jpeg", quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
+  };
 
-    // Opcje dla html2pdf - POPRAWIONE
-    const opt = {
-      margin: [10, 10, 10, 10], // góra, prawo, dół, lewo
-      filename: `${currentDocType || 'document'}_${new Date().toISOString().slice(0,10)}.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { 
-        scale: 2, 
-        useCORS: true,
-        letterRendering: true,
-        logging: false,
-        width: 794,  // szerokość A4 w pikselach
-        windowWidth: 794
-      },
-      jsPDF: { 
-        unit: 'mm', 
-        format: 'a4', 
-        orientation: 'portrait',
-        compress: true
-      },
-      pagebreak: { mode: 'avoid-all' }  // unikaj podziału na strony
-    };
-
-    // Generuj i pobierz PDF
-    await html2pdf().set(opt).from(element).save();
-    
-    console.log('✅ PDF wygenerowany pomyślnie');
-  } catch (error) {
-    console.error('❌ Błąd generowania PDF:', error);
-    alert('❌ Wystąpił błąd podczas generowania PDF: ' + error.message);
-  }
+  await html2pdf().set(opt).from(element).save();
 });
 
 // opcjonalnie: save draft (tu demo - localStorage)
