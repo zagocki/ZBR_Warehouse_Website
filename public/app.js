@@ -457,7 +457,6 @@ document.addEventListener("DOMContentLoaded", () => {
      ============================== */
   const sections = {
     inventory: document.getElementById("inventory"),
-    reports: document.getElementById("reports"),
     documents: document.getElementById("documents"),
     wydanieTowaru: document.getElementById("wydanieTowaru"),
     users: document.getElementById("users"),
@@ -465,7 +464,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const btns = {
     btnStany: document.getElementById("btnStany"),
-    btnRaporty: document.getElementById("btnRaporty"),
     btnDokumenty: document.getElementById("btnDokumenty"),
     btnWydanie: document.getElementById("btnWydanie"),
     btnUzytkownicy: document.getElementById("btnUzytkownicy"),
@@ -478,11 +476,6 @@ document.addEventListener("DOMContentLoaded", () => {
   btns.btnStany.addEventListener("click", () => {
     hideAllSections();
     sections.inventory.classList.remove("hidden");
-  });
-
-  btns.btnRaporty.addEventListener("click", () => {
-    hideAllSections();
-    sections.reports.classList.remove("hidden");
   });
 
   btns.btnDokumenty.addEventListener("click", () => {

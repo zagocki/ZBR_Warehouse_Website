@@ -410,43 +410,6 @@ table tbody tr:hover .dots-btn {
   opacity: 0.9;
 }
 
-/* =========================
-   Sekcja raportów i dokumentów --- bedzie do usuniecia
-   ========================= */
-.reports-bar {
-  background-color: #242426;
-  padding: 10px;
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-}
-
-.report-btn {
-  background-color: #3a3a3c;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 16px;
-  transition: background-color 0.3s;
-}
-
-.report-btn:hover {
-  background-color: #505052;
-}
-
-.report-placeholder {
-  background-color: white;
-  height: 400px;
-  margin: 20px;
-  border-radius: 10px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  color: black;
-}
-
 /* ---- Dokumenty (modal) ---- */
 /* ---- styles for document modal and printable sheet ---- */
 .doc-modal { width: 100%; max-width: 1100px; background: #161616; border-radius: 10px; padding: 16px; }
