@@ -263,38 +263,43 @@ app.post("/api/receive", async (req, res) => {
   }
 });
 
+// Wydanie produktu z magazynu
 app.post("/api/issue", async (req, res) => {
   const { id, qty } = req.body;
   if (!id || !qty) return res.status(400).json({ error: "id i qty wymagane" });
 
   try {
-    const pool = await sql.connect();
+    const pool = await sql.connect(dbConfig);
+
     const product = await pool.request()
       .input("id", sql.Int, id)
-      .query("SELECT qty FROM products WHERE id = @id");
+      .query("SELECT Quantity FROM products WHERE ProductID = @id");
 
     if (product.recordset.length === 0)
       return res.status(404).json({ error: "Produkt nie znaleziony" });
 
-    const currentQty = product.recordset[0].qty;
+    const currentQty = product.recordset[0].Quantity;
+
     if (currentQty < qty)
       return res.status(400).json({ error: "Za mało w magazynie" });
 
     await pool.request()
       .input("id", sql.Int, id)
       .input("qty", sql.Int, qty)
-      .query("UPDATE products SET qty = qty - @qty WHERE id = @id");
+      .query("UPDATE products SET Quantity = Quantity - @qty WHERE ProductID = @id");
 
     const updated = await pool.request()
       .input("id", sql.Int, id)
-      .query("SELECT * FROM products WHERE id = @id");
+      .query("SELECT ProductID, Product_name, Quantity FROM products WHERE ProductID = @id");
 
     res.json(updated.recordset[0]);
+
   } catch (err) {
     console.error("❌ Błąd wydania produktu:", err);
     res.status(500).json({ error: err.message });
   }
 });
+
 
 // DELETE product by ProductID
 app.delete("/api/products/:id", async (req, res) => {

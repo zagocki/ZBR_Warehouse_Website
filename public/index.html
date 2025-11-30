@@ -84,26 +84,53 @@
       </div>
     </div>
 
-    <!-- Sekcja WYDANIA TOWARU -->
-    <div id="wydanieTowaru" class="main-section hidden">
-      <div class="wydanie-container">
-        <h2>Wydanie towaru</h2>
-        <form id="wydanieForm">
-          <label>Produkt:
-            <input type="text" id="wydanieProdukt" placeholder="Nazwa produktu" required>
-          </label>
-          <label>Ilość:
-            <input type="number" id="wydanieIlosc" min="1" required>
-          </label>
-          <label>Odbiorca:
-            <input type="text" id="wydanieOdbiorca" placeholder="Dział / Klient" required>
-          </label>
-          <div class="modal-buttons">
-            <button type="submit">Wydaj</button>
-          </div>
-        </form>
-      </div>
+<!-- Sekcja WYDANIA TOWARU (z modalem wyboru produktu) -->
+<div id="wydanieTowaru" class="main-section hidden">
+  <div class="wydanie-container">
+    <h2>Wydanie towaru</h2>
+
+    <!-- Wybrany produkt -->
+    <label>Wybrany produkt:</label>
+    <input type="text" id="selectedProductName" disabled placeholder="Nie wybrano produktu">
+
+    <button id="openProductPicker" class="primary-btn" style="margin-top:10px;">Wybierz produkt</button>
+
+    <label for="wydanieIlosc">Ilość do wydania:</label>
+    <input type="number" id="wydanieIlosc" min="1" value="1">
+
+    <label for="wydanieOdbiorca">Odbiorca / Dział / Klient:</label>
+    <input type="text" id="wydanieOdbiorca" placeholder="Dział / Klient">
+
+    <button id="issueProductBtn" class="primary-btn" style="margin-top:15px;">Wydaj towar</button>
+  </div>
+</div>
+
+<!-- Modal wyboru produktu -->
+<div id="productPickerModal" class="modal hidden">
+  <div class="modal-content picker">
+    <h3>Wybierz produkt do wydania</h3>
+
+    <input type="text" id="pickerSearch" placeholder="Szukaj produktu..." class="picker-search">
+
+    <div class="picker-table-wrapper">
+      <table class="picker-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nazwa</th>
+            <th>Ilość</th>
+            <th>Kategoria</th>
+          </tr>
+        </thead>
+        <tbody id="pickerTableBody">
+          <!-- generowane z JS -->
+        </tbody>
+      </table>
     </div>
+
+    <button id="closePicker" class="secondary-btn" style="margin-top:15px;">Zamknij</button>
+  </div>
+</div>
 
     <!-- ======= Sekcja DOKUMENTÓW ======= -->
     <div id="documents" class="main-section hidden">

@@ -624,6 +624,87 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
+// ======== MODAL WYBORU PRODUKTU ========
+
+const pickerModal = document.getElementById("productPickerModal");
+const pickerTableBody = document.getElementById("pickerTableBody");
+
+// otwarcie modala
+document.getElementById("openProductPicker").addEventListener("click", async () => {
+  pickerModal.classList.remove("hidden");
+  await loadProductPicker();
+});
+
+// zamknięcie
+document.getElementById("closePicker").addEventListener("click", () => {
+  pickerModal.classList.add("hidden");
+});
+
+// pobieranie pełnej listy produktów
+async function loadProductPicker() {
+  const rows = await api("/api/products");
+
+  pickerTableBody.innerHTML = "";
+
+  rows.forEach(p => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${p.ProductID}</td>
+      <td>${p.Product_name}</td>
+      <td>${p.Quantity}</td>
+      <td>${p.CategoryID}</td>
+    `;
+
+    // kliknięcie na produkt
+    tr.addEventListener("click", () => {
+      selectedProductID = p.ProductID;
+      document.getElementById("selectedProductName").value =
+        `${p.Product_name} (dostępne: ${p.Quantity})`;
+
+      pickerModal.classList.add("hidden");
+    });
+
+    pickerTableBody.appendChild(tr);
+  });
+}
+
+// wyszukiwanie w modalu
+document.getElementById("pickerSearch").addEventListener("input", e => {
+  const term = e.target.value.toLowerCase();
+
+  document.querySelectorAll("#pickerTableBody tr").forEach(row => {
+    row.style.display = row.textContent.toLowerCase().includes(term) ? "" : "none";
+  });
+});
+
+let selectedProductID = null;
+
+document.getElementById("issueProductBtn").addEventListener("click", async () => {
+  const qty = parseInt(document.getElementById("wydanieIlosc").value);
+  const odbiorca = document.getElementById("wydanieOdbiorca").value.trim();
+
+  if (!selectedProductID) {
+    alert("Wybierz produkt!");
+    return;
+  }
+
+  if (!qty || qty <= 0) {
+    alert("Podaj poprawną ilość.");
+    return;
+  }
+
+  try {
+    const result = await api("/api/issue", "POST", {
+      id: selectedProductID,
+      qty
+    });
+
+    alert(`Wydano ${qty} szt. Nowa ilość: ${result.Quantity}`);
+    await refresh();
+  } catch (err) {
+    alert("Błąd wydania: " + err.error);
+  }
+});
 
   /* ==============================
      🔍 WYSZUKIWANIE PRODUKTÓW
@@ -635,25 +716,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  /* ==============================
-     📦 WYDANIE TOWARU
-     ============================== */
-  const wydanieForm = document.getElementById("wydanieForm");
-  const confirmModal = document.getElementById("confirmModal");
-  wydanieForm.addEventListener("submit", (e) => {
-    e.preventDefault();
-    const produkt = document.getElementById("wydanieProdukt").value;
-    const ilosc = parseInt(document.getElementById("wydanieIlosc").value);
-    const odbiorca = document.getElementById("wydanieOdbiorca").value;
-
-    confirmModal.classList.remove("hidden");
-    document.getElementById("confirmYes").onclick = () => {
-      confirmModal.classList.add("hidden");
-      alert(`✅ Wydano ${ilosc} szt. produktu "${produkt}" dla ${odbiorca}.`);
-      wydanieForm.reset();
-    };
-    document.getElementById("confirmNo").onclick = () => confirmModal.classList.add("hidden");
-  });
 
   /* ==============================
      🔐 ZMIEŃ HASŁO (Modal + logika)

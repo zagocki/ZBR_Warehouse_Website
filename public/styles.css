@@ -539,58 +539,55 @@ table tbody tr:hover .dots-btn {
   color: #fff;
 }
 
-/* =========================
-   Sekcja Wydanie Towaru
-   ========================= */
-.wydanie-container {
-  background: #242426;
-  padding: 20px;
-  border-radius: 12px;
-  margin: 50px auto;
-  color: white;
-  max-width: 600px;
+/* ===== Modal wyboru produktu ===== */
+
+.modal.picker {
   display: flex;
-  flex-direction: column;
   justify-content: center;
   align-items: center;
-  box-shadow: 0 0 10px rgba(0,0,0,0.5);
 }
 
-.wydanie-container h2 {
+.modal-content.picker {
+  background: #242426;
+  padding: 20px;
+  border-radius: 10px;
+  width: 700px;
+  max-height: 80vh;
+  overflow: auto;
+  color: white;
   text-align: center;
-  margin-bottom: 15px;
+  animation: fadeIn 0.3s ease;
 }
 
-#wydanieForm {
+.picker-search {
   width: 100%;
-}
-
-#wydanieForm label {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 15px;
-  width: 100%;
-}
-
-#wydanieForm input {
-  padding: 8px;
-  border: 1px solid #444;
-  border-radius: 8px;
+  padding: 10px;
   background: #2c2c2c;
   color: white;
-}
-
-#wydanieForm button {
-  background-color: #0F7294;
-  color: white;
-  border: none;
-  padding: 10px 15px;
+  border: 1px solid #444;
   border-radius: 8px;
-  cursor: pointer;
+  margin-bottom: 12px;
 }
 
-#wydanieForm button:hover {
-  opacity: 0.9;
+.picker-table-wrapper {
+  max-height: 60vh;
+  overflow-y: auto;
+  border-radius: 8px;
+}
+
+.picker-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.picker-table th, .picker-table td {
+  padding: 10px;
+  border-bottom: 1px solid #444;
+}
+
+.picker-table tr:hover {
+  background: #0F7294;
+  cursor: pointer;
 }
 
 /* =========================
