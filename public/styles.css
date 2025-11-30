@@ -416,24 +416,23 @@ table tbody tr:hover .dots-btn {
 .doc-flex { display:flex; gap:18px; align-items:flex-start; }
 .doc-form { width: 36%; max-height:72vh; overflow:auto; padding-right:8px; }
 .doc-preview-wrapper { width: 64%; display:flex; justify-content:center; align-items:flex-start; }
-.doc-preview { width: 100%; display:flex; justify-content:center; }
+.doc-preview { width: 100%; display:flex; justify-content:center; transform-origin: top center; }
 .doc-sheet {
-  width: 210mm; /* Dokładna szerokość A4 */
-  max-width: 210mm;
-  min-height: 297mm; /* Wysokość A4 */
+  width: 90vw;      /* zajmuje 90% szerokości okna */
+  max-width: 1100px; /* opcjonalny limit */
+  min-height: 80vh;  /* wysokość zależna od okna */
   background: white;
   color: #111;
   box-shadow: 0 6px 20px rgba(0,0,0,0.6);
   border-radius: 6px;
-  padding: 15mm; /* Marginesy wewnętrzne */
+  padding: 20px;
   box-sizing: border-box;
   margin: 12px auto;
-  overflow: visible;
+  overflow: auto;   /* scroll jeśli zawartość się nie mieści */
   font-family: "Arial", sans-serif;
   font-size: 12px;
-  page-break-after: avoid;
-  page-break-inside: avoid;
 }
+
 
 .doc-sheet .doc-header { 
   display: flex; 
@@ -476,6 +475,15 @@ table tbody tr:hover .dots-btn {
 .small-btn.primary { background:#0F7294;border-color:#0b5566; }
 .small-btn:hover { opacity:0.95; }
 
+@media print {
+  .doc-sheet {
+    width: 210mm;
+    min-height: 297mm;
+    padding: 15mm;
+    box-shadow: none;
+    transform: none;
+  }
+}
 
 /* =========================
    Ekran logowania

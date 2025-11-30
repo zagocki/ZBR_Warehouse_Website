@@ -331,7 +331,31 @@ document.getElementById("generatePdfBtn").addEventListener("click", async () => 
   await html2pdf().set(opt).from(element).save();
 });
 
-// opcjonalnie: save draft (tu demo - localStorage)
+// resize doc - responsywne dopasowanie do okna
+function resizeDoc() {
+  const preview = document.querySelector('.doc-preview');
+  const sheet = document.querySelector('.doc-sheet');
+  if (!sheet) return;
+  const scale = Math.min(
+    window.innerWidth / sheet.offsetWidth,
+    window.innerHeight / sheet.offsetHeight,
+    1
+  );
+  sheet.style.transform = `scale(${scale})`;
+}
+
+// wywołanie przy zmianie rozmiaru i przy ładowaniu strony
+window.addEventListener('resize', resizeDoc);
+window.addEventListener('load', resizeDoc);
+
+// opcjonalnie: wywołaj też po każdej aktualizacji podglądu, np. po renderPreviewFromForm
+const originalRender = renderPreviewFromForm;
+renderPreviewFromForm = function() {
+  originalRender();
+  resizeDoc();
+};
+
+//save draft (tu demo - localStorage)
 document.getElementById("saveDraftBtn").addEventListener("click", () => {
   try {
     const tpl = DOC_TEMPLATES[currentDocType];
