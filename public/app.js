@@ -79,7 +79,9 @@ tr.innerHTML = `
 /* =========================
    DOKUMENTY: definicje pól
    ========================= */
-// szablony pól dla każdego typu dokumentu
+/* =========================
+   DOKUMENTY: definicje pól
+   ========================= */
 const DOC_TEMPLATES = {
   PZ: {
     title: "PZ - Przyjęcie zewnętrzne",
@@ -116,12 +118,11 @@ const DOC_TEMPLATES = {
       { id: "invoice_date", label: "Data", type: "date" },
       { id: "buyer", label: "Nabywca", type: "text" },
       { id: "seller", label: "Sprzedawca", type: "text" },
-      { id: "product_table", label: "Pozycje (produkt/ilość,cena netto)","type":"table_invoice" }
+      { id: "product_table", label: "Pozycje (produkt/ilość,cena netto)", type:"table_invoice" }
     ]
   }
 };
 
-// pomocnicze selektory
 const docModal = document.getElementById("docModal");
 const docFields = document.getElementById("docFields");
 const docPreview = document.getElementById("docPreview");
@@ -129,36 +130,33 @@ const docSheet = document.getElementById("docSheet");
 
 let currentDocType = null;
 
-// powiąż przyciski typów dokumentów
+/* ------------------ Otwarcie modal ------------------ */
 document.querySelectorAll(".doc-type").forEach(btn => {
   btn.addEventListener("click", () => {
-    const id = btn.id.replace("doc", ""); // docPZ -> PZ
+    const id = btn.id.replace("doc", "");
     openDocModal(id);
   });
 });
 
-// open modal + render form
 function openDocModal(type) {
   currentDocType = type;
   const tpl = DOC_TEMPLATES[type];
   if (!tpl) return alert("Nieznany typ dokumentu");
 
-  // wstaw pola
   docFields.innerHTML = `<h4 style="color:#fff;margin:6px 0 10px 0;">Tworzysz: ${tpl.title}</h4>`;
   tpl.fields.forEach(f => {
     if (f.type === "text" || f.type === "date") {
       docFields.innerHTML += `
         <label style="display:block;margin-bottom:8px;color:#ddd;">
           ${f.label}:
-          <input id="${f.id}" name="${f.id}" ${f.type === 'date' ? 'type="date"' : 'type="text"'} style="width:100%;padding:6px;border-radius:6px;border:1px solid #444;margin-top:6px;background:#111;color:#fff;">
-        </label>
-      `;
+          <input id="${f.id}" name="${f.id}" ${f.type==='date'?'type="date"':'type="text"'} style="width:100%;padding:6px;border-radius:6px;border:1px solid #444;margin-top:6px;background:#111;color:#fff;">
+        </label>`;
     } else if (f.type === "table" || f.type === "table_invoice") {
       docFields.innerHTML += `
         <div style="margin:8px 0;color:#ddd;">
           <label>${f.label}:</label>
           <div id="${f.id}" class="doc-table-editor" style="margin-top:6px;">
-            <table style="width:100%;">
+            <table style="width:100%;border-collapse:collapse;">
               <thead><tr>
                 <th style="text-align:left">Nazwa</th>
                 <th style="width:90px">Ilość</th>
@@ -169,40 +167,35 @@ function openDocModal(type) {
             </table>
             <button data-table="${f.id}" class="add-row small-btn" type="button" style="margin-top:6px;">Dodaj pozycję</button>
           </div>
-        </div>
-      `;
+        </div>`;
     }
   });
 
-  // pokaż modal
   docModal.classList.remove("hidden");
   renderPreviewBlank();
-  // hookup add-row buttons
-  setTimeout(()=>{ // after DOM insertion
-    document.querySelectorAll(".add-row").forEach(b=>{
+
+  setTimeout(()=> {
+    document.querySelectorAll(".add-row").forEach(b => {
       b.addEventListener("click", () => addRowToTable(b.dataset.table));
     });
   },50);
 }
 
-// close modal
 document.getElementById("closeDocModal").addEventListener("click", () => {
   docModal.classList.add("hidden");
   docFields.innerHTML = "";
 });
 
-// dodawanie wiersza do edytora tabeli
+/* ------------------ Dodawanie wierszy ------------------ */
 function addRowToTable(tableId) {
   const container = document.getElementById(tableId);
-  if (!container) return;
   const tbody = container.querySelector("tbody");
   const tr = document.createElement("tr");
   tr.innerHTML = `
     <td><input class="row-name" style="width:100%;padding:4px;background:#111;color:#fff;border:1px solid #333;"></td>
     <td><input class="row-qty" style="width:100%;padding:4px;background:#111;color:#fff;border:1px solid #333;"></td>
     <td><input class="row-unit" style="width:100%;padding:4px;background:#111;color:#fff;border:1px solid #333;"></td>
-    <td><button class="remove-row small-btn" type="button">✕</button></td>
-  `;
+    <td><button class="remove-row small-btn" type="button">✕</button></td>`;
   tbody.appendChild(tr);
   tr.querySelector(".remove-row").addEventListener("click", ()=> tr.remove());
 }
@@ -213,172 +206,146 @@ function renderPreviewBlank() {
       <img src="images/ZBR_logo.png" alt="logo" style="height:28px;">
       <div class="doc-title">Podgląd dokumentu</div>
     </div>
-
     <div class="doc-main" style="color:#888;padding-top:20px;">
       Kliknij <b>Podgląd</b>, aby zobaczyć wypełniony dokument.
     </div>
-
-    <div class="doc-footer">ZBR Warehouse</div>
-  `;
+    <div class="doc-footer">ZBR Warehouse</div>`;
 }
 
-// tworzenie HTML podglądu na podstawie formularza
+/* ------------------ Render podglądu ------------------ */
+function escapeHtml(s){ if(!s) return ""; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
 function renderPreviewFromForm() {
   if (!currentDocType) return;
-
   const tpl = DOC_TEMPLATES[currentDocType];
-
-  // --- ZBIERANIE DANYCH ---
   const data = {};
+
   tpl.fields.forEach(f => {
-    if (f.type === "text" || f.type === "date") {
-      data[f.id] = document.getElementById(f.id)?.value || "";
-    } else if (f.type === "table" || f.type === "table_invoice") {
+    if (f.type==='text'||f.type==='date') data[f.id] = document.getElementById(f.id)?.value || "";
+    if (f.type==='table'||f.type==='table_invoice') {
       const container = document.getElementById(f.id);
-      const rows = Array.from(container.querySelectorAll("tbody tr")).map(r => ({
+      data[f.id] = Array.from(container.querySelectorAll("tbody tr")).map(r=>({
         name: r.querySelector(".row-name")?.value || "",
         qty: r.querySelector(".row-qty")?.value || "",
         unit: r.querySelector(".row-unit")?.value || ""
       }));
-      data[f.id] = rows;
     }
   });
 
-  // --- BUDOWANIE TABELI ---
-  const tableField = tpl.fields.find(x => x.type === "table" || x.type === "table_invoice");
+  let tableField = tpl.fields.find(f=>f.type==='table'||f.type==='table_invoice');
   let tableHtml = "";
 
-  if (tableField) {
-    tableHtml += `
-      <table style="width:100%;border-collapse:collapse;margin-top:8px;">
-        <thead>
-          <tr style="background:#f5f5f5;color:#000;">
-            <th style="padding:6px;border:1px solid #ddd;text-align:left">Nazwa</th>
-            <th style="padding:6px;border:1px solid #ddd;width:80px">Ilość</th>
-            <th style="padding:6px;border:1px solid #ddd;width:120px">${tableField.type === "table_invoice" ? "Cena netto" : "J.m."}</th>
-          </tr>
-        </thead>
-        <tbody>
-    `;
+  if(tableField){
+    tableHtml += `<table style="width:100%;border-collapse:collapse;margin-top:8px;">
+      <thead>
+        <tr style="background:#f5f5f5;color:#000;">
+          <th style="padding:6px;border:1px solid #ddd;text-align:left">Nazwa</th>
+          <th style="padding:6px;border:1px solid #ddd;width:80px">Ilość</th>
+          <th style="padding:6px;border:1px solid #ddd;width:120px">${tableField.type==='table_invoice'?'Cena netto':'J.m.'}</th>
+        </tr>
+      </thead>
+      <tbody>`;
 
-    if (data[tableField.id].length === 0) {
-      tableHtml += `
-        <tr><td colspan="3" style="padding:8px;border:1px solid #ddd;text-align:center;color:#888">
-          Brak pozycji
-        </td></tr>`;
+    if(data[tableField.id].length===0){
+      tableHtml += `<tr><td colspan="3" style="padding:8px;border:1px solid #ddd;text-align:center;color:#888">Brak pozycji</td></tr>`;
     } else {
-      data[tableField.id].forEach(row => {
-        tableHtml += `
-          <tr>
-            <td style="padding:6px;border:1px solid #ddd">${escapeHtml(row.name)}</td>
-            <td style="padding:6px;border:1px solid #ddd;text-align:right">${escapeHtml(row.qty)}</td>
-            <td style="padding:6px;border:1px solid #ddd;text-align:right">${escapeHtml(row.unit)}</td>
-          </tr>
-        `;
+      data[tableField.id].forEach(row=>{
+        tableHtml += `<tr>
+          <td style="padding:6px;border:1px solid #ddd">${escapeHtml(row.name)}</td>
+          <td style="padding:6px;border:1px solid #ddd;text-align:right">${escapeHtml(row.qty)}</td>
+          <td style="padding:6px;border:1px solid #ddd;text-align:right">${escapeHtml(row.unit)}</td>
+        </tr>`;
       });
     }
 
     tableHtml += `</tbody></table>`;
   }
 
-  // --- BUDOWANIE CAŁEGO ARKUSZA A4 ---
   docSheet.innerHTML = `
     <div class="doc-header">
       <img src="images/ZBR_logo.png" alt="logo" style="height:28px;">
       <div class="doc-title">${tpl.title}</div>
     </div>
-
     <div style="margin-bottom:10px;font-size:11px;">
       <strong>Wygenerowano:</strong> ${new Date().toLocaleString()}
     </div>
-
     <div class="doc-main">
-      ${tpl.fields
-        .filter(f => f.type === "text" || f.type === "date")
-        .map(f =>
-          `<div style="margin-bottom:6px;"><strong>${f.label}:</strong> ${escapeHtml(data[f.id])}</div>`
-        ).join("")
-      }
-
+      ${tpl.fields.filter(f=>f.type==='text'||f.type==='date').map(f=>`<div style="margin-bottom:6px;"><strong>${f.label}:</strong> ${escapeHtml(data[f.id])}</div>`).join("")}
       ${tableHtml}
     </div>
-
-    <div class="doc-footer">ZBR Warehouse – dokument wygenerowany automatycznie</div>
-  `;
+    <div class="doc-footer">ZBR Warehouse – dokument wygenerowany automatycznie</div>`;
 }
 
-// escape helper
-function escapeHtml(s){ if(!s) return ""; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-// PODGLĄD i GENERUJ PDF
-document.getElementById("previewBtn").addEventListener("click", () => {
-  renderPreviewFromForm();
-});
+/* ------------------ Podgląd i PDF ------------------ */
+document.getElementById("previewBtn").addEventListener("click", renderPreviewFromForm);
 
 document.getElementById("generatePdfBtn").addEventListener("click", async () => {
-  renderPreviewFromForm(); // generujemy aktualny dokument
+  renderPreviewFromForm();
 
-  const element = document.getElementById("docSheet"); // <-- TERAZ TO DZIAŁA
+  const element = docSheet;
+  if(!element) return alert("Brak elementu docSheet");
 
-  const opt = {
-    margin: 0,
-    filename: `${currentDocType}_${new Date().toISOString().slice(0,10)}.pdf`,
-    image: { type: "jpeg", quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true },
-    jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
+  const originalStyle = {
+    transform: element.style.transform || "",
+    width: element.style.width || "",
+    minHeight: element.style.minHeight || "",
+    boxShadow: element.style.boxShadow || "",
+    margin: element.style.margin || "",
+    padding: element.style.padding || "",
+    maxWidth: element.style.maxWidth || "",
+    overflow: element.style.overflow || ""
   };
 
-  await html2pdf().set(opt).from(element).save();
+  try {
+    element.style.transform = "none";
+    element.style.width = "190mm";        // nieco mniejsza szerokość
+    element.style.minHeight = "297mm";
+    element.style.boxShadow = "none";
+    element.style.margin = "0";
+    element.style.padding = "15mm 8mm 15mm 12mm"; // góra/prawa/dół/lewa
+    element.style.maxWidth = "none";
+    element.style.overflow = "visible";
+
+
+    const opt = {
+      margin: 10,
+      filename: `${currentDocType || 'document'}_${new Date().toISOString().slice(0,10)}.pdf`,
+      image: { type: "jpeg", quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
+    };
+
+    await html2pdf().set(opt).from(element).save();
+
+  } finally {
+    element.style.transform = originalStyle.transform;
+    element.style.width = originalStyle.width;
+    element.style.minHeight = originalStyle.minHeight;
+    element.style.boxShadow = originalStyle.boxShadow;
+    element.style.margin = originalStyle.margin;
+    element.style.padding = originalStyle.padding;
+    element.style.maxWidth = originalStyle.maxWidth;
+    element.style.overflow = originalStyle.overflow;
+  }
 });
 
-// resize doc - responsywne dopasowanie do okna
-function resizeDoc() {
-  const preview = document.querySelector('.doc-preview');
+/* ------------------ Responsywne dopasowanie preview ------------------ */
+function resizeDoc(){
   const sheet = document.querySelector('.doc-sheet');
-  if (!sheet) return;
-  const scale = Math.min(
-    window.innerWidth / sheet.offsetWidth,
-    window.innerHeight / sheet.offsetHeight,
-    1
-  );
+  if(!sheet) return;
+  const scale = Math.min(window.innerWidth / sheet.offsetWidth, window.innerHeight / sheet.offsetHeight, 1);
   sheet.style.transform = `scale(${scale})`;
 }
 
-// wywołanie przy zmianie rozmiaru i przy ładowaniu strony
 window.addEventListener('resize', resizeDoc);
 window.addEventListener('load', resizeDoc);
 
-// opcjonalnie: wywołaj też po każdej aktualizacji podglądu, np. po renderPreviewFromForm
 const originalRender = renderPreviewFromForm;
-renderPreviewFromForm = function() {
+renderPreviewFromForm = function(){
   originalRender();
   resizeDoc();
 };
 
-//save draft (tu demo - localStorage)
-document.getElementById("saveDraftBtn").addEventListener("click", () => {
-  try {
-    const tpl = DOC_TEMPLATES[currentDocType];
-    const data = {};
-    tpl.fields.forEach(f=>{
-      if (f.type === 'text' || f.type === 'date') data[f.id] = document.getElementById(f.id)?.value || "";
-      if (f.type.startsWith('table')) {
-        const rows = Array.from(document.querySelectorAll(`#${f.id} tbody tr`)).map(r => ({
-          name: r.querySelector(".row-name")?.value || "",
-          qty: r.querySelector(".row-qty")?.value || "",
-          unit: r.querySelector(".row-unit")?.value || ""
-        }));
-        data[f.id] = rows;
-      }
-    });
-    localStorage.setItem(`draft_${currentDocType}`, JSON.stringify(data));
-    alert("Zapisano draft lokalnie.");
-  } catch (e) {
-    console.error(e); alert("Błąd zapisu draftu.");
-  }
-});
-
-document.addEventListener("DOMContentLoaded", () => {
   // === Elementy DOM ===
   const loginForm = document.getElementById("loginForm");
   const logoutBtn = document.querySelector(".logout");
@@ -783,7 +750,6 @@ document.getElementById("issueProductBtn").addEventListener("click", async () =>
       }
     } catch (err) {
       console.error("Błąd zmiany hasła:", err);
-      alert("❌ Błąd serwera przy zmianie hasła.");
-    }
-  });
+    alert("❌ Błąd serwera przy zmianie hasła.");
+  }
 });
